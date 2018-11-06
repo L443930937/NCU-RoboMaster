@@ -72,7 +72,7 @@ void Gun_Task(void const * argument)
 
 		 	   if((minipc_rx.state_flag==1||ptr_heat_gun_t.sht_flg==1)&&motor_stop_flag==1)
 					{
-						Friction_Wheel_Motor(200,200);
+						Friction_Wheel_Motor(150,150);
 					  set_angle=42125*5;
 					  moto_dial_get.round_cnt=0;
 						moto_dial_get.offset_angle=moto_dial_get.angle;
