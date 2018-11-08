@@ -90,11 +90,11 @@ int main(void)
 	taskENTER_CRITICAL();  //进入临界段
   /* USER CODE BEGIN 2 */
 	BSP_Init();
+	MX_FREERTOS_Init();
 	taskEXIT_CRITICAL();	//退出临界段
   /* USER CODE END 2 */
   /* Call init function for freertos objects (in freertos.c) */
   
-	MX_FREERTOS_Init();
 
   /* Start scheduler */
   osKernelStart();
@@ -122,14 +122,9 @@ void testTask(void const * argument)
 	int16_t angle[4];
 	for(;;)
 	{ 				
-/*
 		float pitch_angle;
 		pitch_angle = ptr_jy901_t_pit.final_angle;
 		printf("\r\n %f",pitch_angle);
-*/
-//		float yaw_angle;
-//		yaw_angle = ptr_jy901_t_yaw.final_angle;
-		printf("fdb = %f,out = %f \r\n",ptr_jy901_t_yaw.final_angle,(-pid_yaw_jy901_spd.pos_out));
 		
 		
 		

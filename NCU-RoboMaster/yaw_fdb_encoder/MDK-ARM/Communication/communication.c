@@ -142,8 +142,8 @@ void JY901_Data_Pro()
 			else if(ptr_jy901_t_pit.err>180)
 				ptr_jy901_t_pit.angle_round--;
 			//计算最终结果
-		  //ptr_jy901_t_pit.final_angle=(ptr_jy901_t_pit.angle_round*360+ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.first_angle)*22.75f;
-		  ptr_jy901_t_pit.final_angle=(ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.first_angle);
+		  ptr_jy901_t_pit.final_angle=(ptr_jy901_t_pit.angle_round*360+ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.first_angle);
+//		  ptr_jy901_t_pit.final_angle=(ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.first_angle);
 			}
 			else 
 			{

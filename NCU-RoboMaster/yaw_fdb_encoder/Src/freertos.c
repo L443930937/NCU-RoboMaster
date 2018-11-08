@@ -122,11 +122,11 @@ void MX_FREERTOS_Init(void) {
 //	osThreadDef(RefereeDataTask, Referee_Data_Task, osPriorityAboveNormal, 0, 128);
 //	RefereeDataTaskHandle = osThreadCreate(osThread(RefereeDataTask), NULL);
 
-//	osThreadDef(MiniPCDataTask, MiniPC_Data_task, osPriorityAboveNormal, 0, 128);
-//	MiniPCDataTaskHandle = osThreadCreate(osThread(MiniPCDataTask), NULL);
+	osThreadDef(MiniPCDataTask, MiniPC_Data_task, osPriorityAboveNormal, 0, 128);
+	MiniPCDataTaskHandle = osThreadCreate(osThread(MiniPCDataTask), NULL);
 
-	osThreadDef(GimbalTask, Gimbal_Contrl_Task, osPriorityNormal, 0, 256);
-	GimbalTaskHandle = osThreadCreate(osThread(GimbalTask), NULL);
+//	osThreadDef(GimbalTask, Gimbal_Contrl_Task, osPriorityNormal, 0, 256);
+//	GimbalTaskHandle = osThreadCreate(osThread(GimbalTask), NULL);
 	
 	osThreadDef(GunTask, Gun_Task, osPriorityNormal, 0, 128);
 	GunTaskHandle = osThreadCreate(osThread(GunTask), NULL);
