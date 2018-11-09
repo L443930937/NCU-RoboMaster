@@ -42,7 +42,7 @@ void gimbal_pid_init(void)
 {
 		/*pitch axis motor pid parameter*/
 	PID_struct_init(&pid_pit, POSITION_PID, 5000, 1000,
-                  5.0f, 0.01f, 10.0f); 
+                  13.0f, 0.01f, 10.0f); 
   PID_struct_init(&pid_pit_jy901_spd, POSITION_PID, 5000, 1000,
                   2.0f, 0.0f, 0.0f );
 	
@@ -53,9 +53,9 @@ void gimbal_pid_init(void)
 //                  2.0f, 0.0f, 0.0f );
 	//use jy901
   PID_struct_init(&pid_yaw_jy901, POSITION_PID, 5000, 1000,
-                  1.0f, 0.0f, 0.05f); //	
+                  5.0f, 0.1f, 25.0f); //	
   PID_struct_init(&pid_yaw_jy901_spd, POSITION_PID, 5000, 1000,
-                  10.0f, 0.0001f, 10.0f ); 
+                  2.5f, 0.0f, 1.0f ); 
 
 	
 }
