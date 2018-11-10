@@ -299,13 +299,15 @@ void UART8_IRQHandler(void)
 		__HAL_UART_CLEAR_IDLEFLAG(&huart8);
 		
 		UART8_RX_NUM=(SizeofJY901)-(hdma_uart8_rx.Instance->NDTR);
-	
+		
+		JY901_Data_Pro();
    __HAL_DMA_ENABLE(&hdma_uart8_rx);
+	 __HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
 	 __HAL_UART_CLEAR_OREFLAG(&huart8);
 		
 	}
   /* USER CODE END UART8_IRQn 0 */
-//  HAL_UART_IRQHandler(&huart8);
+  HAL_UART_IRQHandler(&huart8);
   /* USER CODE BEGIN UART8_IRQn 1 */
 
   /* USER CODE END UART8_IRQn 1 */
@@ -315,12 +317,18 @@ void UART8_IRQHandler(void)
 */
 void DMA1_Stream5_IRQHandler(void)
 {
+	 static  BaseType_t  pxHigherPriorityTaskWoken;
   /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
   __HAL_DMA_DISABLE(&hdma_usart2_rx);
+	
+	__HAL_DMA_CLEAR_FLAG(&hdma_usart2_rx,DMA_FLAG_TCIF2_6);
   /* USER CODE END DMA2_Stream2_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart2_rx);
   /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
-
+			__HAL_DMA_SET_COUNTER(&hdma_usart2_rx,SizeofMinipc);
+			__HAL_DMA_ENABLE(&hdma_usart2_rx);
+		  vTaskNotifyGiveFromISR(MiniPCDataTaskHandle,&pxHigherPriorityTaskWoken);
+			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);	
   /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 
@@ -329,12 +337,19 @@ void DMA1_Stream5_IRQHandler(void)
 */
 void DMA2_Stream2_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
+	 static  BaseType_t  pxHigherPriorityTaskWoken;
+	/* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
   __HAL_DMA_DISABLE(&hdma_usart1_rx);
+	
+	__HAL_DMA_CLEAR_FLAG(&hdma_usart1_rx,DMA_FLAG_TCIF2_6);
   /* USER CODE END DMA2_Stream2_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart1_rx);
   /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
-
+		  __HAL_UART_CLEAR_OREFLAG(&huart1);
+			__HAL_DMA_SET_COUNTER(&hdma_usart1_rx,SizeofRemote);
+			__HAL_DMA_ENABLE(&hdma_usart1_rx);
+      vTaskNotifyGiveFromISR(RemoteDataTaskHandle,&pxHigherPriorityTaskWoken);
+			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);			
   /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 
@@ -394,21 +409,23 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)  //Ω” ’ÕÍ≥…            ‘
 {
 	 static  BaseType_t  pxHigherPriorityTaskWoken;
 		if(huart == &huart1)
-	{  	
+	{
+/*  	
 		  __HAL_UART_CLEAR_OREFLAG(&huart1);
 			__HAL_DMA_SET_COUNTER(&hdma_usart1_rx,SizeofRemote);
 			__HAL_DMA_ENABLE(&hdma_usart1_rx);
       vTaskNotifyGiveFromISR(RemoteDataTaskHandle,&pxHigherPriorityTaskWoken);
 			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);			
-
+*/
 
 	}else if(huart == &huart2)
 	{ 
-			__HAL_DMA_SET_COUNTER(&hdma_usart2_rx,SizeofMinipc);
+/*
+		__HAL_DMA_SET_COUNTER(&hdma_usart2_rx,SizeofMinipc);
 			__HAL_DMA_ENABLE(&hdma_usart2_rx);
 		  vTaskNotifyGiveFromISR(MiniPCDataTaskHandle,&pxHigherPriorityTaskWoken);
 			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);	
-	
+*/
 	}else if(huart == &huart3)
 	{
 			uint8_t Res = 0;
@@ -426,10 +443,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)  //Ω” ’ÕÍ≥…            ‘
 //	}
 	else if(huart == &huart8)
 	{
-			JY901_Data_Pro();
+//			JY901_Data_Pro();
 //		  __HAL_UART_CLEAR_OREFLAG(&huart8);
-			__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
-			__HAL_DMA_ENABLE(&hdma_uart8_rx);		
+//			__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
+//			__HAL_DMA_ENABLE(&hdma_uart8_rx);		
 
 		
 	}

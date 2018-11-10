@@ -136,8 +136,8 @@ void Gimbal_Contrl_Task(void const * argument)
 //			 printf("pit_set:%d,pit_get:%d,out:%d\n\r\n",pit_set.expect,pit_get.total_angle,(int16_t)(-pid_pit_spd.pos_out));
 			 	}                                                                                                        
 		 
-		  	Pitch_Current_Value=0;//(-pid_pit_jy901_spd.pos_out); 
-		    Yaw_Current_Value= 0;//(-pid_yaw_jy901_spd.pos_out); 
+		  	Pitch_Current_Value=(-pid_pit_jy901_spd.pos_out); 
+		    Yaw_Current_Value= (-pid_yaw_jy901_spd.pos_out); 
 				if(gimbal_disable_flg==1)
 				{
 					Cloud_Platform_Motor_Disable(&hcan1);

@@ -124,7 +124,7 @@ void testTask(void const * argument)
 	{ 				
 		float pitch_angle;
 		pitch_angle = ptr_jy901_t_pit.final_angle;
-		printf("\r\n %f",pitch_angle);
+//		printf("\r\n %f",pitch_angle);
 		
 		
 		
