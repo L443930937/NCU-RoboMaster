@@ -4,8 +4,7 @@
 #include "stm32f4xx_hal.h"
 #include "stdio.h"
 #include "String.h"
-//测试
-#include "data_pro_task.h"
+
 
 /* 本模块向外部提供的宏定义 --------------------------------------------------*/
 
@@ -26,11 +25,13 @@ typedef struct{
 		
  float  Volt_Referee;								//来自裁判系统的电压值
  float  Power_Referee;							//来自裁判系统的功率
+ float  Power_Referee_Last;         
  float  Power_Calculat;							//自行计算的功率值
  float  PowerRemain_Referee;				//来自裁判系统的剩余功率
+ float  PowerRemain_Referee_last;		
  float  PowerRemain_Calculat;				//自行计算的裁判系统的剩余功率
- float  A;													//二阶预测系数
- float  B;
+ float  PowerRemain_Calculat_Last;
+ float  PowerRemain_Calculat_Next;
  float  PowerLimit;									//最终限制值
  
 }Limit;				 //电流限制
@@ -48,15 +49,16 @@ typedef struct{
 	
 }MyTimeTick;
 /* 本模块向外部提供的接口常量声明 --------------------------------------------*/
-extern   uint32_t  uhADCxConvertedValue[10];  //ADC缓存数据
+extern  uint32_t  uhADCxConvertedValue[10];  //ADC缓存数据
 extern  Current_GET  current_get;
 extern  Limit  limit;
 extern  MyTimeTick  time_for_limit;
 /* 本模块向外部提供的接口函数原型声明 ----------------------------------------*/
 void power_limit(float Current_get[4]);
-float Window_sliding_filter(float *buff);
-float LPF_1st(float oldData, float newData, float lpf_factor);
+
 float Limit_filter(float oldData,float newData,float val);
+float LPF_1st(float oldData, float newData, float lpf_factor);
+
 
 #endif
 
