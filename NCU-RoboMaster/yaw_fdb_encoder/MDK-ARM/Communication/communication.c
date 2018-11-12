@@ -89,7 +89,6 @@ void select(uint8_t * buff,uint8_t i)
 
 void JY901_Data_Pro()
 {	
-  int16_t data_sum=0;
 	
 	uint8_t  * buff = UART8_RX_DATA;//串口8
 	/*寻找第一个帧头位置*/

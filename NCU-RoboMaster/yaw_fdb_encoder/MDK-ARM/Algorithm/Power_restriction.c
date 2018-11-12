@@ -39,6 +39,9 @@ else if(val>=max)\
 {\
 	val = max;\
 }\
+
+#define Predict_Time  0.05f
+#define Predict_RemainPower 20
 /* 任务相关信息定义-----------------------------------------------------------*/
 
 /* 内部常量定义---------------------------------------------------------------*/
@@ -193,7 +196,7 @@ float LPF_1st(float oldData, float newData, float lpf_factor)
 */
 float Limit_filter(float oldData,float newData,float val)
 {
-	if(abs(newData-oldData)>val)
+	if(MyAbs(newData-oldData)>val)
 		{
 			return oldData;
 		}
@@ -202,6 +205,7 @@ float Limit_filter(float oldData,float newData,float val)
 			return newData;
 		}
 }
+
 
 /*
 ** Descriptions: 粗略测量任务时间(s)
@@ -246,6 +250,16 @@ void MyTime_memset(MyTimeTick *time_tick ,char flag)
 	
 }
 
+
+
+/*
+** Descriptions: 求偏置量
+** Input: NULL
+** Output: NULL
+*/
+
+
+
 /*
 ** Descriptions: ADC数据采集并滤波
 ** Input: NULL
@@ -278,15 +292,37 @@ void Get_ADC_Value(void)
 			current_get.CurrentCalculat = (current_get.CurrentBuff2_get * (0.00080566f) - 2.50f) * 25.0f;
 			
 			if(current_get.Current_Offset_num > 50)
-			{		
+			{
+				
 				current_get.Current_Offset += current_get.CurrentCalculat - current_get.Current_Referee;
 			}
 			if(current_get.Current_Offset_num > 200)
-			{				
+			{
+				
 				current_get.Current_Offset = current_get.Current_Offset/150.0f;
+				
 			}
 		}
 
+}
+
+/*
+** Descriptions: 功率计算
+** Input: NULL
+** Output: NULL
+*/
+
+void Power_Calculate(void)
+{
+		if(limit.Volt_Referee != 0)//防止裁判系统失效
+		{
+			limit.Power_Calculat = current_get.CurrentCalculat * limit.Volt_Referee;
+
+		}else
+		{
+			limit.Power_Calculat = current_get.CurrentCalculat * 24.0f;		
+		}
+		
 }
 
 /*
@@ -301,22 +337,29 @@ void Remain_Power_Calculate(void)
 		MyTime_statistics(&time_for_RP);
 	
 		/*能量缓存计算*/
-		if(limit.Power_Calculat >80)
+		if(limit.PowerRemain_Calculat_Last < 60 || limit.Power_Calculat > 80)
 		{
-			limit.PowerRemain_Calculat -= (limit.Power_Calculat - 80) * time_for_RP.time * 0.01f;
+			limit.PowerRemain_Calculat -= (limit.Power_Calculat - 80) * time_for_RP.time * 0.001f;
 		}
-		if(limit.Power_Calculat <80)
+		if(limit.Power_Calculat < 80 && limit.PowerRemain_Calculat_Last == 60)
 		{
-			limit.PowerRemain_Calculat = 60-(limit.Power_Calculat - 80) * time_for_RP.time * 0.01f;
+			limit.PowerRemain_Calculat = 60 - (limit.Power_Calculat - 80) * time_for_RP.time * 0.001f;
 		}
+		
+		/*有裁判系统更新数据，就使用裁判系统数据*/
+		if(limit.PowerRemain_Referee != limit.PowerRemain_Referee_last)
+		{
+			limit.PowerRemain_Calculat = limit.PowerRemain_Referee;
+		}
+		limit.PowerRemain_Referee_last = limit.PowerRemain_Referee;	
 		
 		/*清空总时间*/
 		MyTime_memset(&time_for_RP,2);		
 		
 		/*恢复能量缓存*/
 		VAL_LIMIT(limit.PowerRemain_Calculat, 0.0f, 60.0f);
-
 }
+
 
 /*
 ** Descriptions: 功率限制
@@ -332,10 +375,7 @@ void power_limit(float  Current_get[4])
 {
 		
 		float total_current = 0;
-		float T0 = 0;
-		float P0 = 0;
-		float RE = 0;
-		float V0 = 0;
+	
 		total_current = MyAbs(Current_get[0]) + MyAbs(Current_get[1])+\
 										MyAbs(Current_get[2]) + MyAbs(Current_get[3]);
 		
@@ -343,69 +383,44 @@ void power_limit(float  Current_get[4])
 		Get_ADC_Value();
 
 		/*功率计算*/
-		if(limit.Volt_Referee != 0)//防止裁判系统失效
-		{
-			limit.Power_Calculat = current_get.CurrentCalculat * limit.Volt_Referee;
-
-		}else
-		{
-			limit.Power_Calculat = current_get.CurrentCalculat * 24.0f;		
-
-		}
-		
-		/*能量缓存计算*/
+		Power_Calculate();
+	
+		/*缓存能量计算*/
 		Remain_Power_Calculate();
-		
+
 		/*功率限制*/
 
-		/*100 ms作为一个时间块进行，仅在预测功率小于一定值的时候才开始计算*/
-		if((limit.PowerRemain_Calculat - (limit.Power_Calculat * 0.26f)) < 10)
+		limit.PowerRemain_Calculat_Next = limit.PowerRemain_Calculat;
+		
+				
+		if(limit.PowerRemain_Calculat_Next < Predict_RemainPower)
 		{
-				/*采集时间*/
-				MyTime_statistics(&time_for_limit);
-				
-				/*方便书写*/
-				T0 = time_for_limit.time * 0.001f;
-				P0 = limit.Power_Calculat;
-				RE = limit.PowerRemain_Calculat;
-				if(current_get.Current_Referee != 0)//防止裁判系统失效
-				{
-					V0 = current_get.Current_Referee;
-				}else
-				{
-					V0 = 24.0f;
-				}
-				/*预测电流值*/
-				limit.PowerLimit = 0.15f * RE / V0 + 0.1f;
-				//(P0-60.0f+600.0f*T0 * 0.001f)/(24.0f*(T0 * 0.001f+0.001f)) + 2.0f*80.0f/24.0f - P0/24.0f;
-				//limit.PowerRemain_Calculat * 0.15f + 0.1f;  //	//(1.0f + (5.0f * RE) / 80.0f);
-				//(limit.Power_Calculat-60.0f+600.0f*time_for_limit.time * 0.001f)/(24.0f*(time_for_limit.time * 0.001f+0.001f)) +\
-																																								2.0f*80.0f/24.0f - limit.Power_Calculat/24.0f;   
-				/*与满功率电流值比较(x/（80/24）)*/
-//			limit.PowerLimit = limit.PowerLimit * 0.3f;
-				
-				/*调节超时(100ms)，已经扣血*/
-				if(time_for_limit.total_time_s >= 0.1f)
-				{
-					limit.PowerLimit = 75.0; //这里的值有待更改
-					/*转化成电流值并比较*/
-					limit.PowerLimit = limit.PowerLimit * 0.0125f;
-				}
-				if(limit.PowerLimit != 0)
-				{
-					/*电流限制*/
-					Current_get[0] = (Current_get[0]/(total_current + 1.0f)) * limit.PowerLimit * 3000.0f; //用蓝牙测一下满功率的时候的总的电调值 5000.0f
-					Current_get[1] = (Current_get[1]/(total_current + 1.0f)) * limit.PowerLimit * 3000.0f;  
-					Current_get[2] = (Current_get[2]/(total_current + 1.0f)) * limit.PowerLimit * 3000.0f;  
-					Current_get[3] = (Current_get[3]/(total_current + 1.0f)) * limit.PowerLimit * 3000.0f;  
-				}
-			}
-			else/*未达到功率限制要求，不计时*/
+			if(limit.PowerRemain_Calculat_Next <0) 
 			{
-				MyTime_memset(&time_for_limit,2);
-			}	
-					
-		printf("限制值:%f，限制时间:%f ,RE:%f  P0:%f ",limit.PowerLimit,time_for_limit.total_time_s,limit.PowerRemain_Calculat,limit.Power_Calculat);
+				limit.PowerRemain_Calculat_Next = 0;
+			}
+			
+			limit.PowerLimit = 5000;
+			limit.PowerLimit = ((limit.PowerRemain_Calculat_Next * limit.PowerRemain_Calculat_Next) / 400) * limit.PowerLimit;		
+			
+			/*电流限制*/
+			Current_get[0] = (Current_get[0]/(total_current + 1.0f)) * limit.PowerLimit; 
+			Current_get[1] = (Current_get[1]/(total_current + 1.0f)) * limit.PowerLimit; 
+			Current_get[2] = (Current_get[2]/(total_current + 1.0f)) * limit.PowerLimit; 
+			Current_get[3] = (Current_get[3]/(total_current + 1.0f)) * limit.PowerLimit; 
+		
+		}
+		
+		
+		if(limit.Power_Calculat < 80)
+		{
+			limit.PowerLimit = 0;
+		}
+		
 	
+//		printf(" pp:%f,limit:%f,RE_T:%f,RE:%f,P0:%f \n\r",limit.Power_Referee,limit.PowerLimit,limit.PowerRemain_Referee,limit.PowerRemain_Calculat,limit.Power_Calculat);
+	
+		limit.PowerRemain_Calculat_Last = limit.PowerRemain_Calculat;
+
 }
 
