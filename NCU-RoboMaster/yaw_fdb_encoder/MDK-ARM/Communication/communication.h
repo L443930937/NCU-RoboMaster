@@ -10,7 +10,7 @@
 
 #define SizeofReferee 100
 #define SizeofRemote 18
-#define SizeofJY901	 33
+#define SizeofJY901	 22
 #define SizeofMinipc  9
 extern uint8_t USART1_RX_DATA[(SizeofRemote)];//Ò£¿Ø
 extern uint16_t USART1_RX_NUM;

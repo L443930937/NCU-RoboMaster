@@ -65,10 +65,6 @@ void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
   __HAL_RCC_DMA2_CLK_ENABLE();
 
-  /* DMA interrupt init */
-  /* DMA1_Stream1_IRQn interrupt configuration */
-//  HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 6, 0);     //串口3，用于打印函数，加打印的任务
-//  HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
   /* DMA1_Stream6_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 7, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
@@ -81,6 +77,11 @@ void MX_DMA_Init(void)
   /* DMA2_Stream2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 6, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+  /* DMA2_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+	
+	
   /* DMA2_Stream4_IRQn interrupt configuration */			//adc
 //  HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 8, 0);
 //  HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);

@@ -216,21 +216,6 @@ void DMA2_Stream4_IRQHandler(void)
 }
 
 /**
-* @brief This function handles DMA1 stream6 global interrupt.
-*/
-void DMA1_Stream6_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream6_IRQn 0 */
-//  __HAL_DMA_DISABLE(&hdma_uart8_rx);
-  /* USER CODE END DMA1_Stream6_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_uart8_rx);
-  /* USER CODE BEGIN DMA1_Stream6_IRQn 1 */
-
-  /* USER CODE END DMA1_Stream6_IRQn 1 */
-}
-
-
-/**
 * @brief This function handles DMA2 stream1 global interrupt.
 */
 void DMA2_Stream1_IRQHandler(void)
@@ -243,30 +228,6 @@ void DMA2_Stream1_IRQHandler(void)
 
   /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
-
-//void USART6_IRQHandler(void)
-//{
-//  /* USER CODE BEGIN USART1_IRQn 0 */
-//	uint8_t tmp1,tmp2;
-//	tmp1 = __HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE);   //¿ÕÏÐÖÐ¶ÏÖÐ½«ÒÑÊÕ×Ö½ÚÊýÈ¡³öºó£¬Í£Ö¹DMA
-//  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart6, UART_IT_IDLE);
-//	
-//   if((tmp1 != RESET) && (tmp2 != RESET))
-//  { 
-//		__HAL_DMA_DISABLE(&hdma_usart6_rx);
-
-//		__HAL_UART_CLEAR_IDLEFLAG(&huart6);
-//		
-//		USART6_RX_NUM=(SizeofReferee)-(hdma_usart6_rx.Instance->NDTR);
-//		
-//	
-//	}
-//  /* USER CODE END USART1_IRQn 0 */
-//	
-//  /* USER CODE BEGIN USART1_IRQn 1 */
-
-//  /* USER CODE END USART1_IRQn 1 */
-//}
 
 void USART3_IRQHandler (void)
 {
@@ -287,7 +248,6 @@ void USART3_IRQHandler (void)
 
 void UART8_IRQHandler(void)
 {
-  /* USER CODE BEGIN UART8_IRQn 0 */
 	uint8_t tmp1,tmp2;
 	tmp1 = __HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE);   //¿ÕÏÐÖÐ¶ÏÖÐ½«ÒÑÊÕ×Ö½ÚÊýÈ¡³öºó£¬Í£Ö¹DMA
   tmp2 = __HAL_UART_GET_IT_SOURCE(&huart8, UART_IT_IDLE);
@@ -301,17 +261,49 @@ void UART8_IRQHandler(void)
 		UART8_RX_NUM=(SizeofJY901)-(hdma_uart8_rx.Instance->NDTR);
 		
 		JY901_Data_Pro();
-   __HAL_DMA_ENABLE(&hdma_uart8_rx);
-	 __HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
-	 __HAL_UART_CLEAR_OREFLAG(&huart8);
+		__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
+    __HAL_DMA_ENABLE(&hdma_uart8_rx);
 		
 	}
-  /* USER CODE END UART8_IRQn 0 */
   HAL_UART_IRQHandler(&huart8);
   /* USER CODE BEGIN UART8_IRQn 1 */
 
   /* USER CODE END UART8_IRQn 1 */
 }
+
+void USART1_IRQHandler (void)
+{
+	 static  BaseType_t  pxHigherPriorityTaskWoken;
+	uint8_t tmp1,tmp2;
+	tmp1 = __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE);   //¿ÕÏÐÖÐ¶ÏÖÐ½«ÒÑÊÕ×Ö½ÚÊýÈ¡³öºó£¬Í£Ö¹DMA
+  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_IDLE);
+	
+   if((tmp1 != RESET) && (tmp2 != RESET))
+  { 
+		__HAL_DMA_DISABLE(&hdma_usart1_rx);
+		__HAL_UART_CLEAR_IDLEFLAG(&huart1);
+		
+			__HAL_DMA_SET_COUNTER(&hdma_usart1_rx,SizeofRemote);
+			__HAL_DMA_ENABLE(&hdma_usart1_rx);
+		
+  HAL_UART_IRQHandler(&huart1);
+  /* USER CODE BEGIN UART8_IRQn 1 */
+   vTaskNotifyGiveFromISR(RemoteDataTaskHandle,&pxHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);			
+	}
+  /* USER CODE END UART8_IRQn 1 */
+}
+
+
+
+
+
+
+
+
+
+
+
 /**
 * @brief This function handles DMA1 stream5 global interrupt.
 */
@@ -337,19 +329,16 @@ void DMA1_Stream5_IRQHandler(void)
 */
 void DMA2_Stream2_IRQHandler(void)
 {
-	 static  BaseType_t  pxHigherPriorityTaskWoken;
-	/* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
-  __HAL_DMA_DISABLE(&hdma_usart1_rx);
-	
-	__HAL_DMA_CLEAR_FLAG(&hdma_usart1_rx,DMA_FLAG_TCIF2_6);
   /* USER CODE END DMA2_Stream2_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart1_rx);
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
-		  __HAL_UART_CLEAR_OREFLAG(&huart1);
-			__HAL_DMA_SET_COUNTER(&hdma_usart1_rx,SizeofRemote);
-			__HAL_DMA_ENABLE(&hdma_usart1_rx);
-      vTaskNotifyGiveFromISR(RemoteDataTaskHandle,&pxHigherPriorityTaskWoken);
-			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);			
+  /* USER CODE END DMA2_Stream2_IRQn 1 */
+}
+
+
+void DMA1_Stream6_IRQHandler(void)
+{
+  /* USER CODE END DMA2_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_uart8_rx);
   /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 
@@ -443,11 +432,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)  //½ÓÊÕÍê³É            Ô
 //	}
 	else if(huart == &huart8)
 	{
-//			JY901_Data_Pro();
-//		  __HAL_UART_CLEAR_OREFLAG(&huart8);
-//			__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
-//			__HAL_DMA_ENABLE(&hdma_uart8_rx);		
-
 		
 	}
 	

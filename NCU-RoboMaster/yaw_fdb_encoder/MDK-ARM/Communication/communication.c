@@ -109,56 +109,6 @@ void JY901_Data_Pro()
 			memcpy(buff_last,buff,11);
 			
 			select(buff_transition,0);
-
-//	printf("角速度:%3f,角度:%3f\n\r",(float)stcGyro.w[0]/32768*2000,(float)stcAngle.Angle[0]/32768*180);	
-	
-
-	
-			ptr_jy901_t_pit.JY901_angle = (float)stcAngle.Angle[1]*0.005493f;
-			ptr_jy901_t_yaw.JY901_angle = (float)stcAngle.Angle[2]*0.005493f;	
-	   
-//		if(pritnf_JY901){    //调试用
-//			printf("gz=%f\n",ptr_jy901_t_yaw.JY901_angle);
-//    	float *ptr = NULL; //初始化指针
-//			ptr = &(ptr_jy901_t_yaw.final_angle);	
-//			/*用虚拟示波器，发送数据*/
-//			vcan_sendware((uint8_t *)ptr,sizeof(ptr_jy901_t_yaw.final_angle));
-//		 }
-		if(ptr_jy901_t_yaw.times>5)
-			{
-//			ptr_jy901_t_pit.JY901_angle = Limit_filter(ptr_jy901_t_pit.JY901_angle_last,ptr_jy901_t_pit.JY901_angle,30);
-//	    ptr_jy901_t_yaw.JY901_angle = Limit_filter(ptr_jy901_t_yaw.JY901_angle_last,ptr_jy901_t_yaw.JY901_angle,30);
-				ptr_jy901_t_yaw.times=6;
-				ptr_jy901_t_yaw.err=ptr_jy901_t_yaw.JY901_angle-ptr_jy901_t_yaw.JY901_angle_last;
-			if(ptr_jy901_t_yaw.err<-180)  
-				ptr_jy901_t_yaw.angle_round++;
-			else if(ptr_jy901_t_yaw.err>180)  
-				ptr_jy901_t_yaw.angle_round--;
-			ptr_jy901_t_yaw.final_angle=(ptr_jy901_t_yaw.angle_round*360+ptr_jy901_t_yaw.JY901_angle-ptr_jy901_t_yaw.first_angle)*22.75f;
-			
-			ptr_jy901_t_pit.err=ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.JY901_angle_last;
-			if(ptr_jy901_t_pit.err<-180) 
-				ptr_jy901_t_pit.angle_round++;
-			else if(ptr_jy901_t_pit.err>180)
-				ptr_jy901_t_pit.angle_round--;
-			//计算最终结果
-		  ptr_jy901_t_pit.final_angle=(ptr_jy901_t_pit.angle_round*360+ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.first_angle);
-//		  ptr_jy901_t_pit.final_angle=(ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.first_angle);
-			}
-			else 
-			{
-				ptr_jy901_t_yaw.first_angle = ptr_jy901_t_yaw.JY901_angle;
-				ptr_jy901_t_pit.first_angle = ptr_jy901_t_pit.JY901_angle;
-			}
-			
-
-			ptr_jy901_t_yaw.JY901_angle_last = ptr_jy901_t_yaw.JY901_angle;
-			ptr_jy901_t_pit.JY901_angle_last = ptr_jy901_t_pit.JY901_angle;
-			ptr_jy901_t_yaw.times++;
-
-		
-			
-
 			ptr_jy901_t_angular_velocity.vx = stcGyro.w[0] * 0.06103516f;
 			ptr_jy901_t_angular_velocity.vy = stcGyro.w[1] * 0.06103516f;
 			ptr_jy901_t_angular_velocity.vz = stcGyro.w[2] * 0.06103516f;			

@@ -257,8 +257,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_uart8_rx);
 
   /* USER CODE BEGIN UART8_MspInit 1 */
-//    HAL_NVIC_SetPriority(UART8_IRQn, 6, 0);
-//    HAL_NVIC_EnableIRQ(UART8_IRQn);
+    HAL_NVIC_SetPriority(UART8_IRQn, 6, 0);
+    HAL_NVIC_EnableIRQ(UART8_IRQn);
   /* USER CODE END UART8_MspInit 1 */
   }
   else if(uartHandle->Instance==USART1)
@@ -302,8 +302,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart1_rx);
 
   /* USER CODE BEGIN USART1_MspInit 1 */
-//    HAL_NVIC_SetPriority(USART1_IRQn, 5, 0);
-//    HAL_NVIC_EnableIRQ(USART1_IRQn);
+    HAL_NVIC_SetPriority(USART1_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
   /* USER CODE END USART1_MspInit 1 */
   }else if(uartHandle->Instance==USART2)
   {

@@ -303,7 +303,7 @@ Default_Handler PROC
                 EXPORT  TIM7_IRQHandler                   [WEAK]                    
                 EXPORT  DMA2_Stream0_IRQHandler           [WEAK]                                  
                 EXPORT  DMA2_Stream1_IRQHandler           [WEAK]                                   
-                EXPORT  DMA2_Stream2_IRQHandler           [WEAK]                                    
+                EXPORT  DMA2_Stream2_IRQHandler           [WEAK]                                 
                 EXPORT  DMA2_Stream3_IRQHandler           [WEAK]                                    
                 EXPORT  DMA2_Stream4_IRQHandler           [WEAK]                                 
                 EXPORT  ETH_IRQHandler                    [WEAK]                                         
