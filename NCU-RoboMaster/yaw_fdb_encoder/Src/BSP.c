@@ -78,13 +78,15 @@ void BSP_Init(void)
 
 	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
 	__HAL_UART_ENABLE_IT(&huart8, UART_IT_IDLE);
+	__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);
 //	__HAL_UART_ENABLE_IT(&huart3,UART_IT_RXNE);
 	
 	/*使能DMA中断*/
 	HAL_UART_Receive_DMA(&huart1,USART1_RX_DATA,SizeofRemote); //这一步的目的是创建一段接受内存，和CAN的一样
 	HAL_UART_Receive_DMA(&huart8,UART8_RX_DATA,SizeofJY901);
+	HAL_UART_Receive_DMA(&huart2,USART2_RX_DATA,SizeofMinipc);
 
-	/*开启ADC的DMA接收，注意缓存不能小于2，不能设置为_IO型即易变量*/
+/*开启ADC的DMA接收，注意缓存不能小于2，不能设置为_IO型即易变量*/
 //	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)uhADCxConvertedValue, 10); 
 	/*陀螺仪*/
 //	 MPU6500_Init();

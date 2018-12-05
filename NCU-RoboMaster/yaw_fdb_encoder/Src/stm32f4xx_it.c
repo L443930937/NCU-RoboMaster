@@ -294,6 +294,28 @@ void USART1_IRQHandler (void)
   /* USER CODE END UART8_IRQn 1 */
 }
 
+void USART2_IRQHandler (void)
+{
+	 static  BaseType_t  pxHigherPriorityTaskWoken;
+	uint8_t tmp1,tmp2;
+	tmp1 = __HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE);   //空闲中断中将已收字节数取出后，停止DMA
+  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_IDLE);
+	
+   if((tmp1 != RESET) && (tmp2 != RESET))
+  { 
+		__HAL_DMA_DISABLE(&hdma_usart2_rx);
+		__HAL_UART_CLEAR_IDLEFLAG(&huart2);
+		
+			__HAL_DMA_SET_COUNTER(&hdma_usart2_rx,SizeofMinipc);
+			__HAL_DMA_ENABLE(&hdma_usart2_rx);
+		
+  HAL_UART_IRQHandler(&huart2);
+  /* USER CODE BEGIN UART8_IRQn 1 */
+   vTaskNotifyGiveFromISR(MiniPCDataTaskHandle,&pxHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);			
+	}
+  /* USER CODE END UART8_IRQn 1 */
+}
 
 
 
@@ -307,23 +329,6 @@ void USART1_IRQHandler (void)
 /**
 * @brief This function handles DMA1 stream5 global interrupt.
 */
-void DMA1_Stream5_IRQHandler(void)
-{
-	 static  BaseType_t  pxHigherPriorityTaskWoken;
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
-  __HAL_DMA_DISABLE(&hdma_usart2_rx);
-	
-	__HAL_DMA_CLEAR_FLAG(&hdma_usart2_rx,DMA_FLAG_TCIF2_6);
-  /* USER CODE END DMA2_Stream2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart2_rx);
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
-			__HAL_DMA_SET_COUNTER(&hdma_usart2_rx,SizeofMinipc);
-			__HAL_DMA_ENABLE(&hdma_usart2_rx);
-		  vTaskNotifyGiveFromISR(MiniPCDataTaskHandle,&pxHigherPriorityTaskWoken);
-			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);	
-  /* USER CODE END DMA2_Stream2_IRQn 1 */
-}
-
 /**
 * @brief This function handles DMA2 stream2 global interrupt.
 */
@@ -341,6 +346,14 @@ void DMA1_Stream6_IRQHandler(void)
   HAL_DMA_IRQHandler(&hdma_uart8_rx);
   /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
+
+void DMA1_Stream5_IRQHandler(void)
+{
+  /* USER CODE END DMA2_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart2_rx);
+  /* USER CODE END DMA2_Stream2_IRQn 1 */
+}
+
 
 /**
 * @brief This function handles CAN1 RX0 interrupts.

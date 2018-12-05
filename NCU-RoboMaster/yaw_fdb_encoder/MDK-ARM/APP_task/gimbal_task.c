@@ -99,10 +99,12 @@ void Gimbal_Contrl_Task(void const * argument)
 				default:{	//втсииД╩В
 //					pid_calc(&pid_yaw, yaw_get.total_angle, yaw_set.expect);
 //					pid_calc(&pid_yaw_jy901_spd,(ptr_jy901_t_angular_velocity.vz), pid_yaw.pos_out);
+/*
 					yaw_set.expect = minipc_rx.angle_yaw + yaw_set.expect;
 					pit_set.expect = minipc_rx.angle_pit + pit_set.expect;
 					minipc_rx.angle_yaw = 0;
 					minipc_rx.angle_pit = 0;
+*/
 //					pid_calc(&pid_yaw_jy901,(ptr_jy901_t_yaw.final_angle),yaw_set.expect);
 					pid_calc(&pid_yaw_jy901, yaw_get.total_angle,yaw_set.expect);
 					pid_calc(&pid_yaw_jy901_spd,(ptr_jy901_t_angular_velocity.vz), pid_yaw_jy901.pos_out);

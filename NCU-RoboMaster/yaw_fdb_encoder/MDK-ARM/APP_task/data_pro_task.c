@@ -322,16 +322,19 @@ void MiniPC_Data_task(void const * argument)
 	   NotifyValue=ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
     if(NotifyValue==1)
 		{
+			NotifyValue=0;
 			Get_MiniPC_Data();
 				
-			pid_calc(&pid_minipc_yaw, (int16_t)minipc_rx.angle_yaw, 0);
-			pid_calc(&pid_minipc_pit, (int16_t)minipc_rx.angle_pit, 0);
-			pid_minipc_yaw.pos_out=-(pid_minipc_yaw.pos_out);
-			pid_minipc_pit.pos_out=-(pid_minipc_pit.pos_out);
-			
-			yaw_set.expect_pc += pid_minipc_yaw.pos_out;
-			pit_set.expect_pc += pid_minipc_pit.pos_out;
-			
+//			pid_calc(&pid_minipc_yaw, (int16_t)minipc_rx.angle_yaw, 0);
+//			pid_calc(&pid_minipc_pit, (int16_t)minipc_rx.angle_pit, 0);
+//			pid_minipc_yaw.pos_out=-(pid_minipc_yaw.pos_out);
+//			pid_minipc_pit.pos_out=-(pid_minipc_pit.pos_out);
+//			
+//			yaw_set.expect_pc += pid_minipc_yaw.pos_out;
+//			pit_set.expect_pc += pid_minipc_pit.pos_out;
+
+//			yaw_set.expect=minipc_rx.angle_yaw+yaw_get.total_angle;
+//			pit_set.expect=minipc_rx.angle_pit+pit_get.total_angle;
 			yaw_set.mode = minipc_rx.state_flag;
 			
 //			osDelay(5);
