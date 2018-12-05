@@ -333,8 +333,8 @@ void MiniPC_Data_task(void const * argument)
 //			yaw_set.expect_pc += pid_minipc_yaw.pos_out;
 //			pit_set.expect_pc += pid_minipc_pit.pos_out;
 
-//			yaw_set.expect=minipc_rx.angle_yaw+yaw_get.total_angle;
-//			pit_set.expect=minipc_rx.angle_pit+pit_get.total_angle;
+			yaw_set.expect=minipc_rx.angle_yaw+yaw_get.total_angle;
+			pit_set.expect=minipc_rx.angle_pit+pit_get.total_angle;
 			yaw_set.mode = minipc_rx.state_flag;
 			
 //			osDelay(5);

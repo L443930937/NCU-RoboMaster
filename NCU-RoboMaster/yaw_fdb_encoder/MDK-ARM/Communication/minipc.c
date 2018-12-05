@@ -52,8 +52,8 @@ void Get_MiniPC_Data(void)
 	minipc_rx.frame_tail 	 = buff[8];
 	if((minipc_rx.frame_header == 0xFF) && (minipc_rx.frame_tail == 0xFE))
 	{
-		minipc_rx.angle_yaw  = buff[1]<<8|buff[2];
-		minipc_rx.angle_pit  = buff[3]<<8|buff[4];
+		minipc_rx.angle_yaw  = (int16_t)(buff[1]<<8|buff[2]);
+		minipc_rx.angle_pit  = (int16_t)(buff[3]<<8|buff[4]);
 		minipc_rx.state_flag = buff[5];
 		minipc_rx.distance   = buff[6]<<8|buff[7];
 	}

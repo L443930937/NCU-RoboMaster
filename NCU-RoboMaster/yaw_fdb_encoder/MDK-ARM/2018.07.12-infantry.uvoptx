@@ -123,7 +123,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>x顝</Name>
+          <Name>€騸</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -206,17 +206,37 @@
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>minipc_rx.angle_yaw</ItemText>
+          <ItemText>minipc_rx.angle_yaw,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>minipc_rx.angle_pit</ItemText>
+          <ItemText>minipc_rx.angle_pit,0x10</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
           <ItemText>USART2_RX_DATA</ItemText>
+        </Ww>
+        <Ww>
+          <count>13</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>yaw_set.expect</ItemText>
+        </Ww>
+        <Ww>
+          <count>14</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>pit_set.expect</ItemText>
+        </Ww>
+        <Ww>
+          <count>15</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>pid_yaw_jy901.pos_out</ItemText>
+        </Ww>
+        <Ww>
+          <count>16</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>pid_pit.pos_out</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
