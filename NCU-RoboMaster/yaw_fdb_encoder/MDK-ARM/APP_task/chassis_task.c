@@ -84,7 +84,8 @@ void Chassis_Contrl_Task(void const * argument)
 	  IMU_Get_Data();
 		HAL_GPIO_TogglePin(GPIOG,GPIO_PIN_4); //GRE_G
 
-	 	switch(chassis_gimble_Mode_flg)
+//	 	switch(chassis_gimble_Mode_flg)
+		switch(0)
 		{	
 			case 0:	{	//·ÖÀë	
 			motor_move_setvmmps(wheel,moto_3508_set.dstVmmps_X,moto_3508_set.dstVmmps_Y,moto_3508_set.dstVmmps_W);
@@ -123,7 +124,7 @@ void Chassis_Contrl_Task(void const * argument)
 //			Current_set[3] = pid_3508_spd[3].pos_out;			
 			
 //			printf("befeor:%f   ",Current_set[0]);
-//		  power_limit(Current_set);
+		  power_limit(Current_set);
 //			printf("after:%f\n\r",Current_set[0]);
 			
 //			pid_3508_spd[0].pos_out = Current_set[0];			

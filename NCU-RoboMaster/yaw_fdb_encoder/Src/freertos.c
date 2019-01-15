@@ -113,8 +113,8 @@ void MX_FREERTOS_Init(void) {
 	osThreadDef(Task1, testTask, osPriorityLow, 0, 512);
 	testTaskHandle = osThreadCreate(osThread(Task1), NULL);
 	
-//	osThreadDef(ChassisTask, Chassis_Contrl_Task, osPriorityNormal, 0, 256);
-//	ChassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
+	osThreadDef(ChassisTask, Chassis_Contrl_Task, osPriorityNormal, 0, 256);
+	ChassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
 	
 	osThreadDef(RemoteDataTask, Remote_Data_Task, osPriorityHigh, 0, 256);
 	RemoteDataTaskHandle = osThreadCreate(osThread(RemoteDataTask), NULL);

@@ -236,7 +236,7 @@ void get_moto_measure_6623(moto_measure_t *ptr,CAN_HandleTypeDef * hcan)
 	ptr->angle = (uint16_t)(hcan->pRxMsg->Data[0]<<8 | hcan->pRxMsg->Data[1]) ;
 	ptr->real_current  = (int16_t)(hcan->pRxMsg->Data[2]<<8 | hcan->pRxMsg->Data[3]);
 	ptr->given_current = (int16_t)(hcan->pRxMsg->Data[4]<<8 | hcan->pRxMsg->Data[5]);
-//	ptr->speed_rpm = ptr->real_current;
+	ptr->speed_rpm = ptr->real_current;
 //	ptr->hall = hcan->pRxMsg->Data[6];
 	
 	if(ptr->angle - ptr->last_angle > 4096)

@@ -87,7 +87,7 @@ void BSP_Init(void)
 	HAL_UART_Receive_DMA(&huart2,USART2_RX_DATA,SizeofMinipc);
 
 /*开启ADC的DMA接收，注意缓存不能小于2，不能设置为_IO型即易变量*/
-//	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)uhADCxConvertedValue, 10); 
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)uhADCxConvertedValue, 10); 
 	/*陀螺仪*/
 //	 MPU6500_Init();
 	/*摩擦轮*/
@@ -97,6 +97,6 @@ void BSP_Init(void)
   HAL_CAN_Receive_IT(&hcan2, CAN_FIFO0);
 	/*初始化JY901*/
 //	JY901_Init();
-	HAL_Delay(4000);
+//	HAL_Delay(4000);
 
 }

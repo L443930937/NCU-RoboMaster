@@ -349,7 +349,7 @@ void power_limit(float  Current_get[4])
 
 		}else
 		{
-			limit.Power_Calculat = current_get.CurrentCalculat * 24.0f;		
+			limit.Power_Calculat = current_get.CurrentCalculat * 23.0f;		
 
 		}
 		
@@ -405,7 +405,6 @@ void power_limit(float  Current_get[4])
 				MyTime_memset(&time_for_limit,2);
 			}	
 					
-		printf("限制值:%f，限制时间:%f ,RE:%f  P0:%f ",limit.PowerLimit,time_for_limit.total_time_s,limit.PowerRemain_Calculat,limit.Power_Calculat);
-	
+			printf("\n power:%4f .\n",limit.Power_Calculat);
 }
 
