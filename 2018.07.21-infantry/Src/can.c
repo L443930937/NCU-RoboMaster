@@ -57,7 +57,7 @@ CAN_HandleTypeDef hcan2;
 /* CAN1 init function */
 void MX_CAN1_Init(void)
 {
-uint8_t err = 0;
+	
   hcan1.Instance = CAN1;
   hcan1.Init.Prescaler = 6;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
@@ -70,15 +70,12 @@ uint8_t err = 0;
   hcan1.Init.NART = DISABLE;
   hcan1.Init.RFLM = DISABLE;
   hcan1.Init.TXFP = DISABLE;
-//	err = HAL_CAN_Init(&hcan1);
+
   if (HAL_CAN_Init(&hcan1) != HAL_OK)
   {
     Error_Handler();
   }
-//if(err == 0x03U)
-//{
-// HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_14);
-//}
+
 	  
 }
 /* CAN2 init function */
@@ -136,7 +133,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
   /* USER CODE BEGIN CAN1_MspInit 1 */
 
@@ -166,7 +163,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
   /* USER CODE BEGIN CAN2_MspInit 1 */
 

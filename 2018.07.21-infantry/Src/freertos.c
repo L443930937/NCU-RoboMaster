@@ -55,13 +55,14 @@
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
-osThreadId defaultTaskHandle;
-osThreadId testTaskHandle;
-osThreadId ChassisTaskHandle;
-osThreadId RemoteDataTaskHandle;
-osThreadId RefereeDataTaskHandle;
-osThreadId GimbalTaskHandle;
-osThreadId GunTaskHandle;
+ osThreadId defaultTaskHandle;		  //= 0;
+ osThreadId testTaskHandle; 				//= 0;
+ osThreadId ChassisTaskHandle;		  //= 0;
+ osThreadId RemoteDataTaskHandle;  //= 0;
+ osThreadId RefereeDataTaskHandle; //= 0;
+ osThreadId GimbalTaskHandle;		 	//= 0;
+ osThreadId GunTaskHandle; 				//= 0;
+ osThreadId MiniPCDataTaskHandle;
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
@@ -74,6 +75,8 @@ extern void Remote_Data_Task(void const * argument);
 extern void Referee_Data_Task(void const * argument);
 extern void Gimbal_Contrl_Task(void const * argument);
 extern void Gun_Task(void const * argument);
+extern void MiniPC_Data_task(void const * argument);
+
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* USER CODE BEGIN FunctionPrototypes */
@@ -107,23 +110,28 @@ void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-	osThreadDef(Task1, testTask, osPriorityNormal, 0, 512);
+	osThreadDef(Task1, testTask, osPriorityLow, 0, 512);
 	testTaskHandle = osThreadCreate(osThread(Task1), NULL);
 	
-	osThreadDef(ChassisTask, Chassis_Contrl_Task, osPriorityNormal, 0, 128);
+	osThreadDef(ChassisTask, Chassis_Contrl_Task, osPriorityNormal, 0, 256);
 	ChassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
 	
-	osThreadDef(RemoteDataTask, Remote_Data_Task, osPriorityHigh, 0, 512);
+	osThreadDef(RemoteDataTask, Remote_Data_Task, osPriorityHigh, 0, 256);
 	RemoteDataTaskHandle = osThreadCreate(osThread(RemoteDataTask), NULL);
 	
-	osThreadDef(RefereeDataTask, Referee_Data_Task, osPriorityAboveNormal, 0, 512);
+	osThreadDef(RefereeDataTask, Referee_Data_Task, osPriorityAboveNormal, 0, 128);
 	RefereeDataTaskHandle = osThreadCreate(osThread(RefereeDataTask), NULL);
 
-	osThreadDef(GimbalTask, Gimbal_Contrl_Task, osPriorityNormal, 0, 128);
+	osThreadDef(MiniPCDataTask, MiniPC_Data_task, osPriorityAboveNormal, 0, 128);
+	MiniPCDataTaskHandle = osThreadCreate(osThread(MiniPCDataTask), NULL);
+
+	osThreadDef(GimbalTask, Gimbal_Contrl_Task, osPriorityNormal, 0, 256);
 	GimbalTaskHandle = osThreadCreate(osThread(GimbalTask), NULL);
 	
 	osThreadDef(GunTask, Gun_Task, osPriorityNormal, 0, 128);
 	GunTaskHandle = osThreadCreate(osThread(GunTask), NULL);
+	
+
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */

@@ -1078,19 +1078,19 @@ HAL_StatusTypeDef HAL_CAN_WakeUp(CAN_HandleTypeDef* hcan)
 void HAL_CAN_IRQHandler(CAN_HandleTypeDef* hcan)
 {
   uint32_t tmp1 = 0U, tmp2 = 0U, tmp3 = 0U;
-  
+  /*不进行大量的错误检测 _改库*/
   /* Check End of transmission flag */
-  if(__HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_TME))
-  {
-    tmp1 = __HAL_CAN_TRANSMIT_STATUS(hcan, CAN_TXMAILBOX_0);
-    tmp2 = __HAL_CAN_TRANSMIT_STATUS(hcan, CAN_TXMAILBOX_1);
-    tmp3 = __HAL_CAN_TRANSMIT_STATUS(hcan, CAN_TXMAILBOX_2);
-    if(tmp1 || tmp2 || tmp3)  
-    {
-      /* Call transmit function */
-      CAN_Transmit_IT(hcan);
-    }
-  }
+//  if(__HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_TME))
+//  {
+//    tmp1 = __HAL_CAN_TRANSMIT_STATUS(hcan, CAN_TXMAILBOX_0);
+//    tmp2 = __HAL_CAN_TRANSMIT_STATUS(hcan, CAN_TXMAILBOX_1);
+//    tmp3 = __HAL_CAN_TRANSMIT_STATUS(hcan, CAN_TXMAILBOX_2);
+//    if(tmp1 || tmp2 || tmp3)  
+//    {
+//      /* Call transmit function */
+//      CAN_Transmit_IT(hcan);
+//    }
+//  }
   
   tmp1 = __HAL_CAN_MSG_PENDING(hcan, CAN_FIFO0);
   tmp2 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_FMP0);
@@ -1110,87 +1110,87 @@ void HAL_CAN_IRQHandler(CAN_HandleTypeDef* hcan)
     CAN_Receive_IT(hcan, CAN_FIFO1);
   }
   
-  tmp1 = __HAL_CAN_GET_FLAG(hcan, CAN_FLAG_EWG);
-  tmp2 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_EWG);
-  tmp3 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_ERR);
-  /* Check Error Warning Flag */
-  if(tmp1 && tmp2 && tmp3)
-  {
-    /* Set CAN error code to EWG error */
-    hcan->ErrorCode |= HAL_CAN_ERROR_EWG;
-  }
-  
-  tmp1 = __HAL_CAN_GET_FLAG(hcan, CAN_FLAG_EPV);
-  tmp2 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_EPV);
-  tmp3 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_ERR); 
-  /* Check Error Passive Flag */
-  if(tmp1 && tmp2 && tmp3)
-  {
-    /* Set CAN error code to EPV error */
-    hcan->ErrorCode |= HAL_CAN_ERROR_EPV;
-  }
-  
-  tmp1 = __HAL_CAN_GET_FLAG(hcan, CAN_FLAG_BOF);
-  tmp2 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_BOF);
-  tmp3 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_ERR);  
-  /* Check Bus-Off Flag */
-  if(tmp1 && tmp2 && tmp3)
-  {
-    /* Set CAN error code to BOF error */
-    hcan->ErrorCode |= HAL_CAN_ERROR_BOF;
-  }
-  
-  tmp1 = HAL_IS_BIT_CLR(hcan->Instance->ESR, CAN_ESR_LEC);
-  tmp2 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_LEC);
-  tmp3 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_ERR);
-  /* Check Last error code Flag */
-  if((!tmp1) && tmp2 && tmp3)
-  {
-    tmp1 = (hcan->Instance->ESR) & CAN_ESR_LEC;
-    switch(tmp1)
-    {
-      case(CAN_ESR_LEC_0):
-          /* Set CAN error code to STF error */
-          hcan->ErrorCode |= HAL_CAN_ERROR_STF;
-          break;
-      case(CAN_ESR_LEC_1):
-          /* Set CAN error code to FOR error */
-          hcan->ErrorCode |= HAL_CAN_ERROR_FOR;
-          break;
-      case(CAN_ESR_LEC_1 | CAN_ESR_LEC_0):
-          /* Set CAN error code to ACK error */
-          hcan->ErrorCode |= HAL_CAN_ERROR_ACK;
-          break;
-      case(CAN_ESR_LEC_2):
-          /* Set CAN error code to BR error */
-          hcan->ErrorCode |= HAL_CAN_ERROR_BR;
-          break;
-      case(CAN_ESR_LEC_2 | CAN_ESR_LEC_0):
-          /* Set CAN error code to BD error */
-          hcan->ErrorCode |= HAL_CAN_ERROR_BD;
-          break;
-      case(CAN_ESR_LEC_2 | CAN_ESR_LEC_1):
-          /* Set CAN error code to CRC error */
-          hcan->ErrorCode |= HAL_CAN_ERROR_CRC;
-          break;
-      default:
-          break;
-    }
+//  tmp1 = __HAL_CAN_GET_FLAG(hcan, CAN_FLAG_EWG);
+//  tmp2 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_EWG);
+//  tmp3 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_ERR);
+//  /* Check Error Warning Flag */
+//  if(tmp1 && tmp2 && tmp3)
+//  {
+//    /* Set CAN error code to EWG error */
+//    hcan->ErrorCode |= HAL_CAN_ERROR_EWG;
+//  }
+//  
+//  tmp1 = __HAL_CAN_GET_FLAG(hcan, CAN_FLAG_EPV);
+//  tmp2 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_EPV);
+//  tmp3 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_ERR); 
+//  /* Check Error Passive Flag */
+//  if(tmp1 && tmp2 && tmp3)
+//  {
+//    /* Set CAN error code to EPV error */
+//    hcan->ErrorCode |= HAL_CAN_ERROR_EPV;
+//  }
+//  
+//  tmp1 = __HAL_CAN_GET_FLAG(hcan, CAN_FLAG_BOF);
+//  tmp2 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_BOF);
+//  tmp3 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_ERR);  
+//  /* Check Bus-Off Flag */
+//  if(tmp1 && tmp2 && tmp3)
+//  {
+//    /* Set CAN error code to BOF error */
+//    hcan->ErrorCode |= HAL_CAN_ERROR_BOF;
+//  }
+//  
+//  tmp1 = HAL_IS_BIT_CLR(hcan->Instance->ESR, CAN_ESR_LEC);
+//  tmp2 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_LEC);
+//  tmp3 = __HAL_CAN_GET_IT_SOURCE(hcan, CAN_IT_ERR);
+//  /* Check Last error code Flag */
+//  if((!tmp1) && tmp2 && tmp3)
+//  {
+//    tmp1 = (hcan->Instance->ESR) & CAN_ESR_LEC;
+//    switch(tmp1)
+//    {
+//      case(CAN_ESR_LEC_0):
+//          /* Set CAN error code to STF error */
+//          hcan->ErrorCode |= HAL_CAN_ERROR_STF;
+//          break;
+//      case(CAN_ESR_LEC_1):
+//          /* Set CAN error code to FOR error */
+//          hcan->ErrorCode |= HAL_CAN_ERROR_FOR;
+//          break;
+//      case(CAN_ESR_LEC_1 | CAN_ESR_LEC_0):
+//          /* Set CAN error code to ACK error */
+//          hcan->ErrorCode |= HAL_CAN_ERROR_ACK;
+//          break;
+//      case(CAN_ESR_LEC_2):
+//          /* Set CAN error code to BR error */
+//          hcan->ErrorCode |= HAL_CAN_ERROR_BR;
+//          break;
+//      case(CAN_ESR_LEC_2 | CAN_ESR_LEC_0):
+//          /* Set CAN error code to BD error */
+//          hcan->ErrorCode |= HAL_CAN_ERROR_BD;
+//          break;
+//      case(CAN_ESR_LEC_2 | CAN_ESR_LEC_1):
+//          /* Set CAN error code to CRC error */
+//          hcan->ErrorCode |= HAL_CAN_ERROR_CRC;
+//          break;
+//      default:
+//          break;
+//    }
 
-    /* Clear Last error code Flag */ 
-    hcan->Instance->ESR &= ~(CAN_ESR_LEC);
-  }
-  
-  /* Call the Error call Back in case of Errors */
-  if(hcan->ErrorCode != HAL_CAN_ERROR_NONE)
-  {
-    /* Clear ERRI Flag */ 
-    hcan->Instance->MSR = CAN_MSR_ERRI; 
-    /* Set the CAN state ready to be able to start again the process */
-    hcan->State = HAL_CAN_STATE_READY;
-    /* Call Error callback function */
-    HAL_CAN_ErrorCallback(hcan);
-  }  
+//    /* Clear Last error code Flag */ 
+//    hcan->Instance->ESR &= ~(CAN_ESR_LEC);
+//  }
+//  
+//  /* Call the Error call Back in case of Errors */
+//  if(hcan->ErrorCode != HAL_CAN_ERROR_NONE)
+//  {
+//    /* Clear ERRI Flag */ 
+//    hcan->Instance->MSR = CAN_MSR_ERRI; 
+//    /* Set the CAN state ready to be able to start again the process */
+//    hcan->State = HAL_CAN_STATE_READY;
+//    /* Call Error callback function */
+//    HAL_CAN_ErrorCallback(hcan);
+//  }  
 }
 
 /**

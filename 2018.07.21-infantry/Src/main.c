@@ -81,28 +81,21 @@ int main(void)
   /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+
   HAL_Init();
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* Initialize all configured peripherals */
-//  MX_GPIO_Init();
-//  MX_DMA_Init();
-//  MX_CAN1_Init();
-//  MX_CAN2_Init();
-//  MX_TIM5_Init();
-//  MX_UART8_Init();
-//  MX_USART1_UART_Init();
-//  MX_USART3_UART_Init();
-//  MX_USART6_UART_Init();
-//  CAN_FilterConfig(&hcan1);
-//  CAN_FilterConfig(&hcan2);
+	taskENTER_CRITICAL();  //进入临界段
   /* USER CODE BEGIN 2 */
 	BSP_Init();
+	MX_FREERTOS_Init();
+	taskEXIT_CRITICAL();	//退出临界段
   /* USER CODE END 2 */
   /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
+  
 
   /* Start scheduler */
   osKernelStart();
@@ -122,16 +115,42 @@ int main(void)
   /* USER CODE END 3 */
 
 }
-
+// extern struct SGyro 		stcGyro;
+// extern struct SAngle 	stcAngle;
 void testTask(void const * argument)
 {
-	uint8_t infobuffer[1000]; 
-	while(1)
-	{ 			  
-		HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_7);
-		osThreadList(infobuffer);
-		printf("%s\r\n",infobuffer);
-		osDelay(1000);
+	char InfoBuffer[1000];
+	int16_t angle[4];
+	for(;;)
+	{ 				
+		float pitch_angle;
+		pitch_angle = ptr_jy901_t_pit.final_angle;
+//		printf("\r\n %f",pitch_angle);
+		
+		
+		
+//		vTaskGetRunTimeStats(InfoBuffer);
+//		printf("%s\r\n",InfoBuffer);
+//		vTaskList(InfoBuffer);
+//		printf("%s\n\r",InfoBuffer);
+
+//		int16_t  *ptr = angle; //初始化指针
+//			angle[0]	= (ptr_jy901_t_yaw.final_angle);
+//			angle[1]	= (ptr_jy901_t_angular_velocity.vz);
+//			angle[2]	= ((int16_t)pid_yaw_jy901.pos_out);
+//			angle[3]	= (int16_t)(-pid_yaw_jy901_spd.pos_out);
+//			/*用虚拟示波器，发送数据*/
+//			vcan_sendware((uint8_t *)ptr,4*sizeof(angle[0]));
+//		  vcan_sendware((uint8_t *)ptr,4*sizeof(angle[1]));
+//		  vcan_sendware((uint8_t *)ptr,4*sizeof(angle[2]));
+//		  vcan_sendware((uint8_t *)ptr,4*sizeof(angle[3]));
+//		
+//	   printf("yaw_set.expect_pc=%d\n\t",yaw_set.expect_pc);
+//		printf("pit_set.expect_pc=%d\n\t",pit_set.expect_pc);
+//		printf(" minipc_rx.angle_yaw=%d\n\t", (int16_t)minipc_rx.angle_yaw);
+//		printf(" minipc_rx.angle_pit=%d\n\t", (int16_t)minipc_rx.angle_pit);
+		HAL_GPIO_TogglePin(LED_RED_GPIO_Port,LED_RED_Pin); //Red
+		osDelay(100);
 	}
 }
 
@@ -225,7 +244,16 @@ void assert_failed(uint8_t* file, uint32_t line)
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
+	printf("FILE:%s,LINE:%d\n\r",file,line);
+	for(;;)
+	{	
+#if BoardNew
+		HAL_GPIO_TogglePin(GPIOG,GPIO_PIN_1); 
+#endif
+		HAL_Delay(500);
+	}	 //断言，闪烁LEDGRE_H（新板子）
 
+	
 }
 
 #endif

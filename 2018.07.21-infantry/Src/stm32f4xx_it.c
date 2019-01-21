@@ -41,17 +41,30 @@
 #include "tim.h"
 #include "can.h"
 /* USER CODE BEGIN 0 */
-
+#include "pidwireless.h"
+#include "Motor_USE_CAN.h"
+#include "communication.h "
+#include "atom_imu.h"
+#include "decode.h"
 /* USER CODE END 0 */
-
+extern  osThreadId RemoteDataTaskHandle;
+extern  osThreadId RefereeDataTaskHandle;
+extern  osThreadId	MiniPCDataTaskHandle;
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
+
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim3;
+
+extern DMA_HandleTypeDef hdma_adc1;
+
 extern DMA_HandleTypeDef hdma_uart8_rx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
+extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
-extern TIM_HandleTypeDef htim1;
+
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
@@ -177,6 +190,12 @@ void TIM1_UP_TIM10_IRQHandler(void)
   /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
 }
 
+//定时器3中断服务函数
+void TIM3_IRQHandler(void)
+{
+    HAL_TIM_IRQHandler(&htim3);
+}
+
 /******************************************************************************/
 /* STM32F4xx Peripheral Interrupt Handlers                                    */
 /* Add here the Interrupt Handlers for the used peripherals.                  */
@@ -185,47 +204,26 @@ void TIM1_UP_TIM10_IRQHandler(void)
 /******************************************************************************/
 
 /**
-* @brief This function handles DMA1 stream1 global interrupt.
+* @brief This function handles DMA2 stream4 global interrupt.
 */
-void DMA1_Stream1_IRQHandler(void)
+void DMA2_Stream4_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
+  /* USER CODE BEGIN DMA2_Stream4_IRQn 0 */
 
-  /* USER CODE END DMA1_Stream1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart3_rx);
-  /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
+  /* USER CODE END DMA2_Stream4_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adc1);
+  /* USER CODE BEGIN DMA2_Stream4_IRQn 1 */
 
-  /* USER CODE END DMA1_Stream1_IRQn 1 */
+  /* USER CODE END DMA2_Stream4_IRQn 1 */
 }
-//void USART3_IRQHandler(void)    //串口3是printf函数的重定向串口，不开dma接收
-//{
-//  /* USER CODE BEGIN USART1_IRQn 0 */
-//	uint8_t tmp1,tmp2;
-//	tmp1 = __HAL_UART_GET_FLAG(&huart3, UART_FLAG_IDLE);   //空闲中断中将已收字节数取出后，停止DMA
-//  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart3, UART_IT_IDLE);
-//	
-//   if((tmp1 != RESET) && (tmp2 != RESET))
-//  { 
-//		
-//		__HAL_UART_CLEAR_IDLEFLAG(&huart3);
-//		
-//		USART1_RX_NUM=(maxsize)-(hdma_usart3_rx.Instance->NDTR);
-//	
-//   __HAL_DMA_DISABLE(&hdma_usart3_rx);
-//	}
-//  /* USER CODE END USART1_IRQn 0 */
-////  HAL_UART_IRQHandler(&huart1);
-//  /* USER CODE BEGIN USART1_IRQn 1 */
 
-//  /* USER CODE END USART1_IRQn 1 */
-//}
 /**
 * @brief This function handles DMA1 stream6 global interrupt.
 */
 void DMA1_Stream6_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream6_IRQn 0 */
-
+//  __HAL_DMA_DISABLE(&hdma_uart8_rx);
   /* USER CODE END DMA1_Stream6_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_uart8_rx);
   /* USER CODE BEGIN DMA1_Stream6_IRQn 1 */
@@ -233,28 +231,155 @@ void DMA1_Stream6_IRQHandler(void)
   /* USER CODE END DMA1_Stream6_IRQn 1 */
 }
 
+
+/**
+* @brief This function handles DMA2 stream1 global interrupt.
+*/
+void DMA2_Stream1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
+	
+  /* USER CODE END DMA2_Stream1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart6_rx);
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream1_IRQn 1 */
+}
+
+//void USART6_IRQHandler(void)
+//{
+//  /* USER CODE BEGIN USART1_IRQn 0 */
+//	uint8_t tmp1,tmp2;
+//	tmp1 = __HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE);   //空闲中断中将已收字节数取出后，停止DMA
+//  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart6, UART_IT_IDLE);
+//	
+//   if((tmp1 != RESET) && (tmp2 != RESET))
+//  { 
+//		__HAL_DMA_DISABLE(&hdma_usart6_rx);
+
+//		__HAL_UART_CLEAR_IDLEFLAG(&huart6);
+//		
+//		USART6_RX_NUM=(SizeofReferee)-(hdma_usart6_rx.Instance->NDTR);
+//		
+//	
+//	}
+//  /* USER CODE END USART1_IRQn 0 */
+//	
+//  /* USER CODE BEGIN USART1_IRQn 1 */
+
+//  /* USER CODE END USART1_IRQn 1 */
+//}
+
+void USART3_IRQHandler (void)
+{
+	
+    if(__HAL_UART_GET_IT_SOURCE(&huart3, UART_IT_RXNE) != RESET)  //接收中断
+		{
+			
+		 // Res=(uint8_t)(huart3.Instance->DR & (uint8_t)0x00FFU);
+			
+			HAL_UART_RxCpltCallback(&huart3);
+			
+	   //RENX位在读DR寄存器操作之后就会自动清除，应该不需要这个清除函数
+			__HAL_UART_CLEAR_FLAG(&huart3,UART_FLAG_RXNE);
+			
+		 }
+    
+}
+///*JY901*/
+//void UART8_IRQHandler(void)
+//{
+//  /* USER CODE BEGIN UART8_IRQn 0 */
+//	uint8_t tmp1,tmp2;
+//	tmp1 = __HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE);   //空闲中断中将已收字节数取出后，停止DMA
+//  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart8, UART_IT_IDLE);
+//	
+//   if((tmp1 != RESET) && (tmp2 != RESET))
+//  { 
+//		__HAL_DMA_DISABLE(&hdma_uart8_rx);
+//		
+//		__HAL_UART_CLEAR_IDLEFLAG(&huart8);
+//		
+//		UART8_RX_NUM=(SizeofJY901)-(hdma_uart8_rx.Instance->NDTR);
+//		
+//		JY901_Data_Pro();
+//   __HAL_DMA_ENABLE(&hdma_uart8_rx);
+//	 __HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
+//	 __HAL_UART_CLEAR_OREFLAG(&huart8);
+//		
+//	}
+//  /* USER CODE END UART8_IRQn 0 */
+//  HAL_UART_IRQHandler(&huart8);
+//  /* USER CODE BEGIN UART8_IRQn 1 */
+
+//  /* USER CODE END UART8_IRQn 1 */
+//}
+/*Sabar_IMU*/
 void UART8_IRQHandler(void)
 {
-  /* USER CODE BEGIN UART8_IRQn 0 */
+  /* USER CODE BEGIN USART6_IRQn 0 */
 	uint8_t tmp1,tmp2;
 	tmp1 = __HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE);   //空闲中断中将已收字节数取出后，停止DMA
   tmp2 = __HAL_UART_GET_IT_SOURCE(&huart8, UART_IT_IDLE);
-	
-   if((tmp1 != RESET) && (tmp2 != RESET))
-  { 
+	if((tmp1 != RESET)&&(tmp2 != RESET))
+	{
+		__HAL_DMA_DISABLE(&hdma_uart8_rx);
 		
 		__HAL_UART_CLEAR_IDLEFLAG(&huart8);
-		
-		UART8_RX_NUM=(maxsize)-(hdma_uart8_rx.Instance->NDTR);
-	
-   __HAL_DMA_DISABLE(&hdma_uart8_rx);
-		
-	}
-  /* USER CODE END UART8_IRQn 0 */
-//  HAL_UART_IRQHandler(&huart8);
-  /* USER CODE BEGIN UART8_IRQn 1 */
+				
+		USART8_RX_NUM=sizeof(HOST_Buffer.buffer)-(hdma_uart8_rx.Instance->NDTR);
+		HAL_UART_Receive_DMA(&huart8,HOST_Buffer.buffer,sizeof(HOST_Buffer.buffer));
 
-  /* USER CODE END UART8_IRQn 1 */
+		UartRxMacControler();
+	
+		__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,sizeof(HOST_Buffer.buffer));
+    __HAL_DMA_ENABLE(&hdma_uart8_rx);
+	}
+	/* USER CODE END USART6_IRQn 0 */
+  HAL_UART_IRQHandler(&huart8);
+		/* USER CODE BEGIN USART6_IRQn 1 */
+	
+  /* USER CODE END USART6_IRQn 1 */
+}
+/**
+* @brief This function handles DMA1 stream5 global interrupt.
+*/
+void DMA1_Stream5_IRQHandler(void)
+{
+	 static  BaseType_t  pxHigherPriorityTaskWoken;
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
+  __HAL_DMA_DISABLE(&hdma_usart2_rx);
+	
+	__HAL_DMA_CLEAR_FLAG(&hdma_usart2_rx,DMA_FLAG_TCIF2_6);
+  /* USER CODE END DMA2_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart2_rx);
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
+			__HAL_DMA_SET_COUNTER(&hdma_usart2_rx,SizeofMinipc);
+			__HAL_DMA_ENABLE(&hdma_usart2_rx);
+		  vTaskNotifyGiveFromISR(MiniPCDataTaskHandle,&pxHigherPriorityTaskWoken);
+			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);	
+  /* USER CODE END DMA2_Stream2_IRQn 1 */
+}
+
+/**
+* @brief This function handles DMA2 stream2 global interrupt.
+*/
+void DMA2_Stream2_IRQHandler(void)
+{
+	 static  BaseType_t  pxHigherPriorityTaskWoken;
+	/* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
+  __HAL_DMA_DISABLE(&hdma_usart1_rx);
+	
+	__HAL_DMA_CLEAR_FLAG(&hdma_usart1_rx,DMA_FLAG_TCIF2_6);
+  /* USER CODE END DMA2_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart1_rx);
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
+		  __HAL_UART_CLEAR_OREFLAG(&huart1);
+			__HAL_DMA_SET_COUNTER(&hdma_usart1_rx,SizeofRemote);
+			__HAL_DMA_ENABLE(&hdma_usart1_rx);
+      vTaskNotifyGiveFromISR(RemoteDataTaskHandle,&pxHigherPriorityTaskWoken);
+			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);			
+  /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 
 /**
@@ -273,84 +398,6 @@ void CAN1_RX0_IRQHandler(void)
 }
 
 /**
-* @brief This function handles DMA2 stream1 global interrupt.
-*/
-void DMA2_Stream1_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
-
-  /* USER CODE END DMA2_Stream1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart6_rx);
-  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
-
-  /* USER CODE END DMA2_Stream1_IRQn 1 */
-}
-
-void USART6_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART1_IRQn 0 */
-	uint8_t tmp1,tmp2;
-	tmp1 = __HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE);   //空闲中断中将已收字节数取出后，停止DMA
-  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart6, UART_IT_IDLE);
-	
-   if((tmp1 != RESET) && (tmp2 != RESET))
-  { 
-		
-		__HAL_UART_CLEAR_IDLEFLAG(&huart6);
-		
-		USART6_RX_NUM=(maxsize)-(hdma_usart6_rx.Instance->NDTR);
-	
-   __HAL_DMA_DISABLE(&hdma_usart6_rx);
-		
-	}
-  /* USER CODE END USART1_IRQn 0 */
-//  HAL_UART_IRQHandler(&huart1);
-  /* USER CODE BEGIN USART1_IRQn 1 */
-
-  /* USER CODE END USART1_IRQn 1 */
-}
-
-/**
-* @brief This function handles DMA2 stream2 global interrupt.
-*/
-void DMA2_Stream2_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
-
-  /* USER CODE END DMA2_Stream2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart1_rx);
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
-
-  /* USER CODE END DMA2_Stream2_IRQn 1 */
-}
-
-/**
-* @brief This function handles USART1 global interrupt.
-*/
-void USART1_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART1_IRQn 0 */
-	uint8_t tmp1,tmp2;
-	tmp1 = __HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE);   //空闲中断中将已收字节数取出后，停止DMA
-  tmp2 = __HAL_UART_GET_IT_SOURCE(&huart1, UART_IT_IDLE);
-	
-   if((tmp1 != RESET) && (tmp2 != RESET))
-  { 
-		
-		__HAL_UART_CLEAR_IDLEFLAG(&huart1);
-		
-		USART1_RX_NUM=(maxsize)-(hdma_usart1_rx.Instance->NDTR);
-	
-   __HAL_DMA_DISABLE(&hdma_usart1_rx);
-	}
-  /* USER CODE END USART1_IRQn 0 */
-//  HAL_UART_IRQHandler(&huart1);
-  /* USER CODE BEGIN USART1_IRQn 1 */
-
-  /* USER CODE END USART1_IRQn 1 */
-}
-
-/**
 * @brief This function handles CAN2 RX0 interrupts.
 */
 void CAN2_RX0_IRQHandler(void)
@@ -363,6 +410,7 @@ void CAN2_RX0_IRQHandler(void)
 
   /* USER CODE END CAN2_RX0_IRQn 1 */
 }
+extern volatile unsigned long long FreeRTOSRunTimeTicks;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
@@ -380,58 +428,86 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		__HAL_TIM_ENABLE_IT(&htim5,TIM_IT_UPDATE);
   }
   /* USER CODE END Callback 1 */
+	 else if(htim==(&htim3))
+    {
+       FreeRTOSRunTimeTicks++;  //时间节拍计数器加一
+    }
 }
-
 /* USER CODE BEGIN 1 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)  //接收完成            暂时不加任务通知，后续讨论　　_待续
 {
+	 static  BaseType_t  pxHigherPriorityTaskWoken;
 		if(huart == &huart1)
-	{  
-			__HAL_DMA_SET_COUNTER(&hdma_usart1_rx,maxsize);
+	{
+/*  	
+		  __HAL_UART_CLEAR_OREFLAG(&huart1);
+			__HAL_DMA_SET_COUNTER(&hdma_usart1_rx,SizeofRemote);
 			__HAL_DMA_ENABLE(&hdma_usart1_rx);
+      vTaskNotifyGiveFromISR(RemoteDataTaskHandle,&pxHigherPriorityTaskWoken);
+			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);			
+*/
 
-	} else if(huart == &huart6)
+	}else if(huart == &huart2)
+	{ 
+/*
+		__HAL_DMA_SET_COUNTER(&hdma_usart2_rx,SizeofMinipc);
+			__HAL_DMA_ENABLE(&hdma_usart2_rx);
+		  vTaskNotifyGiveFromISR(MiniPCDataTaskHandle,&pxHigherPriorityTaskWoken);
+			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);	
+*/
+	}else if(huart == &huart3)
 	{
-			__HAL_DMA_SET_COUNTER(&hdma_usart6_rx,maxsize);
-			__HAL_DMA_ENABLE(&hdma_usart6_rx);
+			uint8_t Res = 0;
+			HAL_UART_Receive(&huart3, &Res, 1,1);//读取接收到的数据
+		  /*无线调参的处理函数*/
+			PID_UART_IRQHandler(&huart3, Res);
+	}
+//	else if(huart == &huart6)
+//	{
+//			__HAL_DMA_SET_COUNTER(&hdma_usart6_rx,SizeofReferee);
+//			__HAL_DMA_ENABLE(&hdma_usart6_rx);
+////			vTaskNotifyGiveFromISR(RefereeDataTaskHandle,&pxHigherPriorityTaskWoken);
+////			portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);	
+//		
+//	}
+	else if(huart == &huart8)
+	{
+//			JY901_Data_Pro();
+//		  __HAL_UART_CLEAR_OREFLAG(&huart8);
+//			__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
+//			__HAL_DMA_ENABLE(&hdma_uart8_rx);		
+
 		
-	}else if(huart == &huart8)
-	{
-			JY901_Data_Pro();
-			__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,maxsize);
-			__HAL_DMA_ENABLE(&hdma_uart8_rx);		
 	}
 	
 }
-
 
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
 {
 	if(hcan == &hcan1)
 	{
-//		HAL_CAN_Receive(&hcan1,CAN_FIFO0,10);
 		switch(hcan1.pRxMsg->StdId)
 		{
 			case 0x205:
 			{
-//			memcpy();
+
 				if(yaw_get.msg_cnt++ <= 50)
 				{
 					get_moto_offset(&yaw_get,&hcan1);
 				}else{
 					yaw_get.msg_cnt = 51;
-					get_moto_measure(&yaw_get,&hcan1);
+					get_moto_measure_6623(&yaw_get,&hcan1);
 				}
+//				yaw_get.angle=(uint16_t)(hcan->pRxMsg->Data[0]<<8 |hcan->pRxMsg->Data[1]) ;
 			}break;
 			case 0x206:
 			{
-			
 				if(pit_get.msg_cnt++ <= 50)
 				{
 					get_moto_offset(&pit_get,&hcan1);
 				}else{
 					pit_get.msg_cnt = 51;
-					get_moto_measure(&pit_get,&hcan1);
+					get_moto_measure_6623(&pit_get,&hcan1);
 				}
 			}break;
 			case 0x201:
@@ -442,13 +518,16 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
 				}
 				else{	
 					moto_dial_get.msg_cnt=51;	
-					get_moto_measure(&moto_dial_get, &hcan1);
+					get_moto_measure_2006(&moto_dial_get, &hcan1);
 				}
 			}break;
 			default: break;
 		}
-		HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0);
-
+		if( HAL_BUSY == HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0))//开启中断接收
+		{
+			/* Enable FIFO 0 overrun and message pending Interrupt */
+			__HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_FMP0);
+		}
 	}else if(hcan == &hcan2)
 	{
 //		HAL_CAN_Receive(&hcan1,CAN_FIFO0,10);
@@ -467,11 +546,15 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
 				}
 				else{		
 					moto_chassis_get[i].msg_cnt=51;	
-					get_moto_measure(&moto_chassis_get[i], &hcan2);
+					get_moto_measure_3508(&moto_chassis_get[i], &hcan2);
 				}
 			}
 		}
-		HAL_CAN_Receive_IT(&hcan2, CAN_FIFO0);
+		if( HAL_BUSY == HAL_CAN_Receive_IT(&hcan2, CAN_FIFO0))//开启中断接收
+		{
+			/* Enable FIFO 0 overrun and message pending Interrupt */
+			__HAL_CAN_ENABLE_IT(&hcan2,CAN_IT_FMP0);
+		}	
 	}
 }
 

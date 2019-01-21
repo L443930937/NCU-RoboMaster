@@ -47,6 +47,11 @@ typedef struct __pid_t
     float pout;							//p输出
     float iout;							//i输出
     float dout;							//d输出
+	  float pout_max;
+	  float iout_max;
+	  float dout_max;
+	  float dout_last;
+	  float dout_new;
 
     float pos_out;						//本次位置式输出
     float last_pos_out;				//上次输出
@@ -83,6 +88,7 @@ void PID_struct_init(
     float 	kd);
 
 float pid_calc(pid_t* pid, float fdb, float ref);
+float pid_sp_calc(pid_t* pid, float get, float set, float gyro);
 
 #if 0     //用不到
 extern pid_t pid_rol;
@@ -102,12 +108,20 @@ extern pid_t pid_pos[4];
 		
 extern pid_t pid_yaw;
 extern pid_t pid_yaw_jy901;
+extern pid_t pid_yaw_jy901_spd;
+extern pid_t pid_pit_jy901;
+extern pid_t pid_pit_jy901_spd;
 extern pid_t pid_pit;
 extern pid_t pid_yaw_spd;
 extern pid_t pid_pit_spd;
 extern pid_t pid_dial_pos;  //拨盘电机位置环
 extern pid_t pid_dial_spd;	//速度环
-extern pid_t pid_3508_pos[4];
+extern pid_t pid_3508_pos;
 extern pid_t pid_3508_spd[4];
+extern pid_t pid_3508_current[4];
+extern pid_t pid_minipc_yaw;
+extern pid_t pid_minipc_pit;
+extern pid_t pid_chassis_follow ;//底盘跟随位置环
+extern pid_t pid_chassis_follow_spd ;//底盘跟随速度环
 #endif
 

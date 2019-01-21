@@ -6,6 +6,8 @@
 #include "Motor_USE_CAN.h"
 #include "Motor_USE_TIM.h"
 #include "pid.h"
+#include "minipc.h"
+
 /* 本模块向外部提供的数据类型定义--------------------------------------------*/
 typedef struct Heat_Gun_t
 {
@@ -32,7 +34,7 @@ volatile typedef struct
 
 /* 本模块向外部提供的接口常量声明--------------------------------------------*/
 extern volatile Power_Heat * ptr_power_heat;
-extern Heat_Gun_t * ptr_heat_gun_t;
+extern Heat_Gun_t  ptr_heat_gun_t;
 extern volatile float remain_power;
 
 /* 本模块向外部提供的接口函数原型声明----------------------------------------*/
