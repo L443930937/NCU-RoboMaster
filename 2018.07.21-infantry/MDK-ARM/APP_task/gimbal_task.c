@@ -135,10 +135,10 @@ void Gimbal_Contrl_Task(void const * argument)
 		 
 			Cloud_Platform_Motor(&hcan1,Yaw_Current_Value ,	Pitch_Current_Value);
      
-     printf("Ax = %f , Ay = %f , Az = %f .\n", 
-        saberDataHandle.accKal.accX,
-        saberDataHandle.accKal.accY,
-        saberDataHandle.accKal.accZ);
+//     printf("Ax = %f , Ay = %f , Az = %f .\n", 
+//        saberDataHandle.accKal.accX,
+//        saberDataHandle.accKal.accY,
+//        saberDataHandle.accKal.accZ);
 			osDelay(5);
    }
  
