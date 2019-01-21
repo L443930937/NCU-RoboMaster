@@ -83,7 +83,8 @@ void BSP_Init(void)
 	
 	/*使能DMA中断*/
 	HAL_UART_Receive_DMA(&huart1,USART1_RX_DATA,SizeofRemote); //这一步的目的是创建一段接受内存，和CAN的一样
-	HAL_UART_Receive_DMA(&huart8,UART8_RX_DATA,SizeofJY901);
+	//HAL_UART_Receive_DMA(&huart8,UART8_RX_DATA,SizeofJY901);
+  HAL_UART_Receive_DMA(&huart8,HOST_Buffer.buffer,sizeof(HOST_Buffer.buffer));//Sabar
 	HAL_UART_Receive_DMA(&huart2,USART2_RX_DATA,SizeofMinipc);
 
 /*开启ADC的DMA接收，注意缓存不能小于2，不能设置为_IO型即易变量*/

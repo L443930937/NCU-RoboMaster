@@ -44,6 +44,8 @@
 #include "pidwireless.h"
 #include "Motor_USE_CAN.h"
 #include "communication.h "
+#include "atom_imu.h"
+#include "decode.h"
 /* USER CODE END 0 */
 extern  osThreadId RemoteDataTaskHandle;
 extern  osThreadId RefereeDataTaskHandle;
@@ -296,18 +298,19 @@ void UART8_IRQHandler(void)
 	tmp1 = __HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE);   //空闲中断中将已收字节数取出后，停止DMA
   tmp2 = __HAL_UART_GET_IT_SOURCE(&huart8, UART_IT_IDLE);
 	
-   if((tmp1 != RESET) && (tmp2 != RESET))
-  { 
+   if((tmp1 != RESET)&&(tmp2 != RESET))
+	{
 		__HAL_DMA_DISABLE(&hdma_uart8_rx);
 		
 		__HAL_UART_CLEAR_IDLEFLAG(&huart8);
-		
-		UART8_RX_NUM=(SizeofJY901)-(hdma_uart8_rx.Instance->NDTR);
-		
-		JY901_Data_Pro();
-		__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
+				
+		USART8_RX_NUM=sizeof(HOST_Buffer.buffer)-(hdma_uart8_rx.Instance->NDTR);
+		HAL_UART_Receive_DMA(&huart8,HOST_Buffer.buffer,sizeof(HOST_Buffer.buffer));
+
+		UartRxMacControler();
+	
+		__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,sizeof(HOST_Buffer.buffer));
     __HAL_DMA_ENABLE(&hdma_uart8_rx);
-		
 	}
   HAL_UART_IRQHandler(&huart8);
   /* USER CODE BEGIN UART8_IRQn 1 */

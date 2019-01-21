@@ -14,6 +14,8 @@
 #include "Motor_USE_CAN.h"
 #include "minipc.h"
 #include "Power_restriction.h"
+#include "atom_imu.h"
+#include "decode.h"
 
 extern volatile unsigned long long FreeRTOSRunTimeTicks;
 void ConfigureTimerForRunTimeStats(void);

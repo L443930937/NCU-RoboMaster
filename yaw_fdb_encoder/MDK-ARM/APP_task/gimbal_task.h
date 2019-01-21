@@ -8,6 +8,8 @@
 #include "communication.h "
 #include "Motor_USE_CAN.h"
 #include "chassis_task.h"
+#include "atom_imu.h"
+#include "decode.h"
 
 /* 本模块向外部提供的数据类型定义--------------------------------------------*/
 
