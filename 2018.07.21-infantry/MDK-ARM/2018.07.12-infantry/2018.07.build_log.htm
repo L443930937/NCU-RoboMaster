@@ -17,7 +17,7 @@ Library Manager: ArmAr.exe V5.06 update 6 (build 750)
 Hex Converter:   FromElf.exe V5.06 update 6 (build 750)
 CPU DLL:         SARMCM3.DLL V5.26.2.0
 Dialog DLL:      DCM.DLL V1.17.2.0
-Target DLL:      Segger\JL2CM3.dll V2.99.31.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.5.0
 Dialog DLL:      TCM.DLL V1.36.1.0
  
 <h2>Project:</h2>
@@ -27,10 +27,25 @@ Project File Date:  01/21/2019
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'D:\Keil\ARM\ARMCC\Bin'
 Build target '2018.07.12-infantry'
+compiling BSP.c...
+compiling main.c...
+compiling stm32f4xx_it.c...
+compiling freertos.c...
+compiling communication.c...
+Communication\communication.c(65): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  			ptr_jy901_t_pit->JY901_angle=ptr_jy901_t_pit->JY901_angle*0.005493;
+Communication\communication.c(67): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  			ptr_jy901_t_yaw->JY901_angle=ptr_jy901_t_yaw->JY901_angle*0.005493;
+Communication\communication.c(83): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  			ptr_jy901_t_yaw->final_angle=(ptr_jy901_t_yaw->angle_round*360+ptr_jy901_t_yaw->JY901_angle-ptr_jy901_t_yaw->first_angle)*22.75;
+Communication\communication.c(91): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  		  ptr_jy901_t_pit->final_angle=(ptr_jy901_t_pit->angle_round*360+ptr_jy901_t_pit->JY901_angle-ptr_jy901_t_pit->first_angle)*22.75;
+Communication\communication.c: 4 warnings, 0 errors
 compiling gimbal_task.c...
+compiling data_pro_task.c...
 linking...
-Program Size: Code=21896 RO-data=1520 RW-data=228 ZI-data=23692  
-"2018.07.12-infantry\2018.07.12-infantry" - 0 Error(s), 0 Warning(s).
+Program Size: Code=25096 RO-data=1520 RW-data=228 ZI-data=23692  
+"2018.07.12-infantry\2018.07.12-infantry" - 0 Error(s), 4 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -53,7 +68,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.1.2
-Build Time Elapsed:  00:00:04
+Build Time Elapsed:  00:00:14
 </pre>
 </body>
 </html>

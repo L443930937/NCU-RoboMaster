@@ -119,7 +119,7 @@ void Gimbal_Contrl_Task(void const * argument)
 			pid_calc(&pid_yaw_spd,-(saberDataHandle.gyroCal.gyroZ), pid_yaw_jy901.pos_out);
 		}
 			//pit轴
-			pid_calc(&pid_pit, saberDataHandle.euler.pitch,pit_set->expect);
+			pid_calc(&pid_pit, (int16_t)pit_get.total_angle,pit_set->expect);
 			pid_calc(&pid_pit_spd, -(saberDataHandle.gyroCal.gyroY), pid_pit.pos_out);
      if(0){ /*调试用*/
 //			int16_t  *ptr = angle; //初始化指针
@@ -135,10 +135,10 @@ void Gimbal_Contrl_Task(void const * argument)
 		 
 			Cloud_Platform_Motor(&hcan1,Yaw_Current_Value ,	Pitch_Current_Value);
      
-//     printf("Ax = %f , Ay = %f , Az = %f .\n", 
-//        saberDataHandle.accKal.accX,
-//        saberDataHandle.accKal.accY,
-//        saberDataHandle.accKal.accZ);
+     printf("Ax = %f , Ay = %f , Az = %f .\n", 
+        saberDataHandle.accKal.accX,
+        saberDataHandle.accKal.accY,
+        saberDataHandle.accKal.accZ);
 			osDelay(5);
    }
  
