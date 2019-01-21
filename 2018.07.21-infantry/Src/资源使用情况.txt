@@ -1,0 +1,21 @@
+-时钟          输入					PLLCK系数					输出					
+			   HSE 16MHz			M=16，N=336，P=2			SYSCLK					168MHz
+																APB1-peripheral clock	42MHz
+																APB1-timer clock		84MHz
+																APB2-peripheral clock	84MHz
+																APB2-timer clock		168MHz
+
+
+-串口：			-	模块			DMA_request                 DMA-stream                           波特率             
+
+  -USART1       -                   USART1_RX                   DMA2-Stream2                         115200   
+  -USART3       -                   USART3_RX                   DMA1-Stream1                         115200
+  -USART6       -                   USART6_RX					DMA2-Stream1          				 115200
+  -USRT8        -					UART8_RX					DMA1_Stream6						 115200
+  
+  
+
+
+-定时器                             模式						  分频系数			    重载系数		    计数模式
+  
+  -TIM5	   	    -摩擦轮电调         PWM输出模式               	839+1				1999+1			UP
