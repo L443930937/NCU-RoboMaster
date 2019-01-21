@@ -81,6 +81,7 @@ task.h is included from an application file. */
 #include "task.h"
 #include "timers.h"
 #include "StackMacros.h"
+extern volatile unsigned long long FreeRTOSRunTimeTicks; //时间统计
 
 /* Lint e961 and e750 are suppressed as a MISRA exception justified because the
 MPU ports require MPU_WRAPPERS_INCLUDED_FROM_API_FILE to be defined for the
@@ -1539,6 +1540,7 @@ StackType_t *pxTopOfStack;
 
 #endif /* ( ( INCLUDE_xTaskResumeFromISR == 1 ) && ( INCLUDE_vTaskSuspend == 1 ) ) */
 /*-----------------------------------------------------------*/
+extern void ConfigureTimerForRunTimeStats(void); // _时间统计
 
 void vTaskStartScheduler( void )
 {
@@ -1595,7 +1597,8 @@ BaseType_t xReturn;
 		/* If configGENERATE_RUN_TIME_STATS is defined then the following
 		macro must be defined to configure the timer/counter used to generate
 		the run time counter time base. */
-		portCONFIGURE_TIMER_FOR_RUN_TIME_STATS();
+		ConfigureTimerForRunTimeStats();
+//		portCONFIGURE_TIMER_FOR_RUN_TIME_STATS();
 
 		/* Setting up the timer tick is hardware specific and thus in the
 		portable interface. */

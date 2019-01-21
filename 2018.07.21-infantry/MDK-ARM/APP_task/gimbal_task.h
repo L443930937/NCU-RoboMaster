@@ -7,13 +7,18 @@
 #include "pid.h"
 #include "communication.h "
 #include "Motor_USE_CAN.h"
+#include "chassis_task.h"
+#include "atom_imu.h"
+#include "decode.h"
+
 /* 本模块向外部提供的数据类型定义--------------------------------------------*/
 
 typedef struct{
-		int16_t expect;
-	  uint8_t ICR_flag;
-	  uint8_t ref_flag;
-	  uint8_t ref_flag1;
+		//int16_t expect;
+		float expect;
+		uint8_t	step;
+		uint8_t mode;
+		int16_t expect_pc;
 } Pos_Set;
 
 
@@ -22,8 +27,9 @@ typedef struct{
 
 /* 本模块向外部提供的接口常量声明--------------------------------------------*/
 
-extern Pos_Set * yaw_set;
-extern Pos_Set * pit_set;
+extern Pos_Set  yaw_set;
+extern Pos_Set  pit_set;
+extern int8_t gimbal_disable_flg;
 
 /* 本模块向外部提供的接口函数原型声明----------------------------------------*/
 void Gimbal_Task(void const * argument);

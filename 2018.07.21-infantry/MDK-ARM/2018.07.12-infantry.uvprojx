@@ -10,6 +10,7 @@
       <TargetName>2018.07.12-infantry</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
+      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -17,12 +18,12 @@
           <Vendor>STMicroelectronics</Vendor>
           <PackID>Keil.STM32F4xx_DFP.2.9.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
-          <Cpu>IRAM(0x20000000-0x2002FFFF) IRAM2(0x10000000-0x1000FFFF) IROM(0x8000000-0x81FFFFF) CLOCK(25000000) FPU2 CPUTYPE("Cortex-M4")</Cpu>
+          <Cpu>IRAM(0x20000000,0x30000) IRAM2(0x10000000,0x10000) IROM(0x08000000,0x200000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll></FlashDriverDll>
-          <DeviceId></DeviceId>
-          <RegisterFile></RegisterFile>
+          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32F4xx_2048 -FS08000000 -FL0200000 -FP0($$Device:STM32F427IIHx$CMSIS\Flash\STM32F4xx_2048.FLM))</FlashDriverDll>
+          <DeviceId>0</DeviceId>
+          <RegisterFile>$$Device:STM32F427IIHx$Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f4xx.h</RegisterFile>
           <MemoryEnv></MemoryEnv>
           <Cmp></Cmp>
           <Asm></Asm>
@@ -109,11 +110,11 @@
         </CommonProperty>
         <DllOption>
           <SimDllName>SARMCM3.DLL</SimDllName>
-          <SimDllArguments>-REMAP -MPU</SimDllArguments>
+          <SimDllArguments> -REMAP -MPU</SimDllArguments>
           <SimDlgDll>DCM.DLL</SimDlgDll>
           <SimDlgDllArguments>-pCM4</SimDlgDllArguments>
           <TargetDllName>SARMCM3.DLL</TargetDllName>
-          <TargetDllArguments>-MPU</TargetDllArguments>
+          <TargetDllArguments> -MPU</TargetDllArguments>
           <TargetDlgDll>TCM.DLL</TargetDlgDll>
           <TargetDlgDllArguments>-pCM4</TargetDlgDllArguments>
         </DllOption>
@@ -133,11 +134,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4100</DriverSelection>
+            <DriverSelection>4103</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>STLink\ST-LINKIII-KEIL_SWO.dll</Flash2>
-          <Flash3>"" ()</Flash3>
+          <Flash3></Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -192,7 +193,7 @@
             <uLtcg>0</uLtcg>
             <nSecure>0</nSecure>
             <RoSelD>3</RoSelD>
-            <RwSelD>3</RwSelD>
+            <RwSelD>4</RwSelD>
             <CodeSel>0</CodeSel>
             <OptFeed>0</OptFeed>
             <NoZi1>0</NoZi1>
@@ -326,8 +327,8 @@
             <uC99>0</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
-            <v6Lang>1</v6Lang>
-            <v6LangP>1</v6LangP>
+            <v6Lang>0</v6Lang>
+            <v6LangP>0</v6LangP>
             <vShortEn>1</vShortEn>
             <vShortWch>1</vShortWch>
             <v6Lto>0</v6Lto>
@@ -335,9 +336,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--C99</MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F427xx</Define>
+              <Define>USE_HAL_DRIVER,STM32F427xx,ARM_MATH_CM4,__CC_ARM,ARM_MATH_MATRIX_CHECK,ARM_MATH_ROUNDING</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Drivers/CMSIS/Include;.\app;.\Communication;.\MotorDriver;.\Algorithm;.\APP_task</IncludePath>
+              <IncludePath>../Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Drivers/CMSIS/Include;.\app;.\MotorDriver;.\Algorithm;.\APP_task;..\DSP_LIB;..\DSP_LIB\include;.\Communication</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -536,6 +537,16 @@
               <FileType>1</FileType>
               <FilePath>..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_spi.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32f4xx_hal_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_adc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_adc_ex.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -547,9 +558,9 @@
               <FilePath>../Src/main.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f4xx_hal_msp.c</FileName>
+              <FileName>freertos.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Src/stm32f4xx_hal_msp.c</FilePath>
+              <FilePath>../Src/freertos.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_it.c</FileName>
@@ -557,9 +568,9 @@
               <FilePath>../Src/stm32f4xx_it.c</FilePath>
             </File>
             <File>
-              <FileName>freertos.c</FileName>
+              <FileName>stm32f4xx_hal_msp.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Src/freertos.c</FilePath>
+              <FilePath>../Src/stm32f4xx_hal_msp.c</FilePath>
             </File>
             <File>
               <FileName>资源使用情况.txt</FileName>
@@ -572,19 +583,9 @@
           <GroupName>BSP</GroupName>
           <Files>
             <File>
-              <FileName>gpio.c</FileName>
+              <FileName>BSP.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Src/gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/tim.c</FilePath>
-            </File>
-            <File>
-              <FileName>dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/dma.c</FilePath>
+              <FilePath>..\Src\BSP.c</FilePath>
             </File>
             <File>
               <FileName>spi.c</FileName>
@@ -592,9 +593,14 @@
               <FilePath>..\Src\spi.c</FilePath>
             </File>
             <File>
-              <FileName>usart.c</FileName>
+              <FileName>adc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Src/usart.c</FilePath>
+              <FilePath>..\Src\adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/tim.c</FilePath>
             </File>
             <File>
               <FileName>can.c</FileName>
@@ -602,9 +608,19 @@
               <FilePath>../Src/can.c</FilePath>
             </File>
             <File>
-              <FileName>BSP.c</FileName>
+              <FileName>gpio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\BSP.c</FilePath>
+              <FilePath>../Src/gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/usart.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -612,14 +628,14 @@
           <GroupName>Motor_driver_Moudle</GroupName>
           <Files>
             <File>
-              <FileName>Motor_USE_CAN.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\MotorDriver\Motor_USE_CAN.c</FilePath>
-            </File>
-            <File>
               <FileName>Motor_USE_TIM.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\MotorDriver\Motor_USE_TIM.c</FilePath>
+            </File>
+            <File>
+              <FileName>Motor_USE_CAN.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\MotorDriver\Motor_USE_CAN.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -627,14 +643,14 @@
           <GroupName>Algorithm_Module</GroupName>
           <Files>
             <File>
-              <FileName>mecanum_calc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Algorithm\mecanum_calc.c</FilePath>
-            </File>
-            <File>
               <FileName>pid.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Algorithm\pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>mecanum_calc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Algorithm\mecanum_calc.c</FilePath>
             </File>
             <File>
               <FileName>Power_restriction.c</FileName>
@@ -642,30 +658,60 @@
               <FilePath>.\Algorithm\Power_restriction.c</FilePath>
             </File>
             <File>
-              <FileName>Caloric_restriction.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Algorithm\Caloric_restriction.c</FilePath>
-            </File>
-            <File>
               <FileName>protocol.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Algorithm\protocol.c</FilePath>
             </File>
+            <File>
+              <FileName>Caloric_restriction.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Algorithm\Caloric_restriction.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Communication_&lt;odule</GroupName>
+          <GroupName>Communication_Module</GroupName>
           <Files>
             <File>
               <FileName>communication.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Communication\communication.c</FilePath>
             </File>
+            <File>
+              <FileName>minipc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Communication\minipc.c</FilePath>
+            </File>
+            <File>
+              <FileName>pidwireless.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Communication\pidwireless.c</FilePath>
+            </File>
+            <File>
+              <FileName>atom_imu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Communication\atom_imu.c</FilePath>
+            </File>
+            <File>
+              <FileName>decode.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Communication\decode.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>App</GroupName>
           <Files>
+            <File>
+              <FileName>gun_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP_task\gun_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>gimbal_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP_task\gimbal_task.c</FilePath>
+            </File>
             <File>
               <FileName>chassis_task.c</FileName>
               <FileType>1</FileType>
@@ -676,15 +722,15 @@
               <FileType>1</FileType>
               <FilePath>.\APP_task\data_pro_task.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>DSP_LIB</GroupName>
+          <Files>
             <File>
-              <FileName>gimbal_task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\APP_task\gimbal_task.c</FilePath>
-            </File>
-            <File>
-              <FileName>gun_task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\APP_task\gun_task.c</FilePath>
+              <FileName>arm_cortexM4lf_math.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\DSP_LIB\arm_cortexM4lf_math.lib</FilePath>
             </File>
           </Files>
         </Group>

@@ -51,6 +51,7 @@
 
 TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim12;
+TIM_HandleTypeDef htim3;      //时间统计函数时基 
 
 /* TIM5 init function */
 void MX_TIM5_Init(void)
@@ -150,6 +151,18 @@ void MX_TIM12_Init(void)
   HAL_TIM_MspPostInit(&htim12);
 
 }
+/* TIM3 init function */
+void MX_TIM3_Init(void)
+{
+	  htim3.Instance=TIM3;                          //通用定时器3
+    htim3.Init.Prescaler=84-1;                     //分频系数
+    htim3.Init.CounterMode=TIM_COUNTERMODE_UP;    //向上计数器
+    htim3.Init.Period=50-1;                        //自动装载值
+    htim3.Init.ClockDivision=TIM_CLOCKDIVISION_DIV1;//时钟分频因子
+    HAL_TIM_Base_Init(&htim3);
+    
+    HAL_TIM_Base_Start_IT(&htim3); //使能定时器3和定时器3更新中断：TIM_IT_UPDATE   
+}
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 {
@@ -168,6 +181,11 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 	{
 		__HAL_RCC_TIM5_CLK_ENABLE();
 
+	}else if(tim_baseHandle->Instance==TIM3)
+	{
+		__HAL_RCC_TIM3_CLK_ENABLE();            //使能TIM3时钟
+		HAL_NVIC_SetPriority(TIM3_IRQn,1,0);    //设置中断优先级，抢占优先级1，子优先级0
+		HAL_NVIC_EnableIRQ(TIM3_IRQn);          //开启ITM3中断  
 	}
 }
 

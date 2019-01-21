@@ -761,7 +761,6 @@ void HAL_DMA_IRQHandler(DMA_HandleTypeDef *hdma)
   DMA_Base_Registers *regs = (DMA_Base_Registers *)hdma->StreamBaseAddress;
 
   tmpisr = regs->ISR;
-
   /* Transfer Error Interrupt management ***************************************/
   if ((tmpisr & (DMA_FLAG_TEIF0_4 << hdma->StreamIndex)) != RESET)
   {

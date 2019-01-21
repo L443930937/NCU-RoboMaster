@@ -1,41 +1,37 @@
-/******************************************************************************
-/// @brief
-/// @copyright Copyright (c) 2017 <dji-innovations, Corp. RM Dept.>
-/// @license MIT License
-/// Permission is hereby granted, free of charge, to any person obtaining a copy
-/// of this software and associated documentation files (the "Software"), to deal
-/// in the Software without restriction,including without limitation the rights
-/// to use, copy, modify, merge, publish, distribute, sublicense,and/or sell
-/// copies of the Software, and to permit persons to whom the Software is furnished
-/// to do so,subject to the following conditions:
-///
-/// The above copyright notice and this permission notice shall be included in
-/// all copies or substantial portions of the Software.
-///
-/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-/// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-/// THE SOFTWARE.
+
+/*******************************************************************************
+                      版权所有 (C), 2017-,NCUROBOT
+ *******************************************************************************
+  文 件 名   : pid.c
+  版 本 号   : 初稿
+  作    者   : NCUERM
+  生成日期   : 2018年7月
+  最近修改   :
+  功能描述   : pid计算环节
+  函数列表   : float pid_calc(pid_t* pid, float get, float set)
+							 PID_struct_init(	pid_t* pid,
+																uint32_t mode,
+																uint32_t maxout,
+																uint32_t intergral_limit,   
+																float 	kp, 
+																float 	ki, 
+																float 	kd)
 *******************************************************************************/
-/**
-  ******************************************************************************
-  * @file			pid.c
-  * @version		V1.0.0
-  * @date			2016年11月11日17:21:36
-  * @brief   		对于PID， 反馈/测量习惯性叫get/measure/real/fdb,
-						  期望输入一般叫set/target/ref
-  *******************************************************************************/
-  
-  
-  
-/* Includes ------------------------------------------------------------------*/
+
+/* 包含头文件 ----------------------------------------------------------------*/
 #include "pid.h"
+#include "Power_restriction.h"
 #include <math.h>
+/* 内部自定义数据类型 --------------------------------------------------------*/
+
+/* 内部宏定义 ----------------------------------------------------------------*/
 #define ABS(x)		((x>0)? (x): (-x)) 
 
+/* 任务相关信息定义-----------------------------------------------------------*/
+
+/* 内部常量定义---------------------------------------------------------------*/
+
+/* 外部变量声明 --------------------------------------------------------------*/
 #if 0
 pid_t pid_yaw       = {0};  //yaw轴位置环
 pid_t pid_yaw_jy901 = {0};  //外接陀螺仪 /*目前只用于位置环*/ 
@@ -44,9 +40,25 @@ pid_t pid_yaw_spd   = {0};	//yaw轴速度环
 pid_t pid_pit_spd   = {0};	//pit轴速度环
 pid_t pid_dial_pos  = {0};  //拨盘电机位置环
 pid_t pid_dial_spd  = {0};	//拨盘电机速度环
-pid_t pid_3508_pos[4];      //底盘电机位置环
+pid_t pid_3508_pos;      		//底盘电机位置环
 pid_t pid_3508_spd[4];			//底盘电机速度环
+pid_t pid_3508_current[4];	//底盘电机电流环控制
 #endif
+/* 外部函数原型声明 ----------------------------------------------------------*/
+
+/* 内部变量 ------------------------------------------------------------------*/
+
+/* 函数原型声明 ----------------------------------------------------------*/
+
+/**
+	**************************************************************
+	** Descriptions: 限幅函数
+	** Input: 	
+	**			   a :要限制的变量的指针
+	**				ABS_MAX :幅值
+	** Output: NULL
+	**************************************************************
+**/
 
 void abs_limit(float *a, float ABS_MAX){
     if(*a > ABS_MAX)
@@ -54,7 +66,20 @@ void abs_limit(float *a, float ABS_MAX){
     if(*a < -ABS_MAX)
         *a = -ABS_MAX;
 }
-/*参数初始化--------------------------------------------------------------*/
+/**
+	**************************************************************
+	** Descriptions: pid参数初始化
+	** Input: 	
+	**			   pid_t *    pid,    					pid的指针
+	**    	   uint32_t 	mode, 						pid模式
+	**  	 	 	 uint32_t	  maxout,						限幅值
+	**    		 uint32_t 	intergral_limit,	积分环限幅
+	**   		 	 float 	    kp, 
+	**   			 float   		ki, 
+	**   			 float 			kd
+	** Output: NULL
+	**************************************************************
+**/
 static void pid_param_init(
     pid_t *pid, 
     uint32_t mode,
@@ -72,7 +97,17 @@ static void pid_param_init(
     pid->i = ki;
     pid->d = kd;    
 }
-/*中途更改参数设定(调试)------------------------------------------------------------*/
+/**
+	**************************************************************
+	** Descriptions: 限幅中途更改参数设定函数(调试)
+	** Input: 	
+  **				*pid：要求更改的pid的指针	
+	**			   kp :
+	**				 ki :
+  ** 				 kd ：
+	** Output: NULL
+	**************************************************************
+**/
 static void pid_reset(pid_t	*pid, float kp, float ki, float kd)
 {
     pid->p = kp;
@@ -81,10 +116,15 @@ static void pid_reset(pid_t	*pid, float kp, float ki, float kd)
 }
 
 /**
-    *@bref. calculate delta PID and position PID
-    *@param[in] set： target
-    *@param[in] real	measure
-    */
+	**************************************************************
+	** Descriptions: pid计算函数
+	** Input: 	
+  **				 *pid :		要进行计算的pid的指针
+	**					get :   实际值
+	**					set :   目标值
+	** Output: NULL
+	**************************************************************
+**/
 float pid_calc(pid_t* pid, float get, float set){
     pid->get[NOW] = get;
     pid->set[NOW] = set;
@@ -98,11 +138,15 @@ float pid_calc(pid_t* pid, float get, float set){
     {
         pid->pout = pid->p * pid->err[NOW];
         pid->iout += pid->i * pid->err[NOW];
-        pid->dout = pid->d * (pid->err[NOW] - pid->err[LAST] );
+        pid->dout_new = pid->d * (pid->err[NOW] - pid->err[LAST] );
+			  
+		    pid->dout = LPF_1st(pid->dout_last,pid->dout_new,0.6);
+			
         abs_limit(&(pid->iout), pid->IntegralLimit);
         pid->pos_out = pid->pout + pid->iout + pid->dout;
         abs_limit(&(pid->pos_out), pid->MaxOutput);
         pid->last_pos_out = pid->pos_out;	//update last time 
+			  pid->dout_last = pid->dout;
     }
     else if(pid->pid_mode == DELTA_PID)//增量式P
     {
@@ -173,8 +217,20 @@ float pid_sp_calc(pid_t* pid, float get, float set, float gyro){
     return pid->pid_mode==POSITION_PID ? pid->pos_out : pid->delta_out;
 //	
 }
-/*pid总体初始化-----------------------------------------------------------------*/
-void PID_struct_init(
+/**
+	**************************************************************
+	** Descriptions: pid参数初始化
+	** Input: 	
+	**			   pid_t *    pid,    					pid的指针
+	**    	   uint32_t 	mode, 						pid模式
+	**  	 	 	 uint32_t	  maxout,						限幅值
+	**    		 uint32_t 	intergral_limit,	积分环限幅
+	**   		 	 float 	    kp, 
+	**   			 float   		ki, 
+	**   			 float 			kd
+	** Output: NULL
+	**************************************************************
+**/void PID_struct_init(
 											pid_t* pid,
 											uint32_t mode,
 											uint32_t maxout,

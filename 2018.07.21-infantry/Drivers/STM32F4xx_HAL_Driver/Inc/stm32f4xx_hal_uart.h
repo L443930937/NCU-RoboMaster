@@ -435,7 +435,7 @@ typedef struct
   */
 #define __HAL_UART_CLEAR_FEFLAG(__HANDLE__) __HAL_UART_CLEAR_PEFLAG(__HANDLE__)
 
-/** @brief  Clear the UART NE pending flag.
+/** @brief  Clear the UART IDLE pending flag.
   * @param  __HANDLE__: specifies the UART Handle.
   *         This parameter can be UARTx where x: 1, 2, 3, 4, 5, 6, 7 or 8 to select the USART or 
   *         UART peripheral.

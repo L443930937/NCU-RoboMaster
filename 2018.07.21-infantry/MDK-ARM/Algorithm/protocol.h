@@ -232,7 +232,8 @@ typedef __packed struct
 //ÄÚ²¿º¯Êý
 uint8_t verify_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength);
 uint8_t verify_crc16_check_sum(uint8_t* pchMessage, uint32_t dwLength);
-
+uint8_t get_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength, uint8_t ucCRC8);
+uint16_t get_crc16_check_sum(uint8_t* pchMessage, uint32_t dwLength, uint16_t wCRC);
 uint8_t  append_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength);
 uint16_t append_crc16_check_sum(uint8_t* pchMessage, uint32_t dwLength);
 

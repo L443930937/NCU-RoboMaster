@@ -44,11 +44,36 @@
 #ifndef __MAIN_H
 #define __MAIN_H
   /* Includes ------------------------------------------------------------------*/
-
+//所有对库文件的更改全局搜索统一的关键词: _改库
 /* USER CODE BEGIN Includes */
+#define BoardOld 				0 	//1为旧板子，0为新板子
+#define BoardNew				1
+
+#define infantry 				1 	//步兵车
+#define engineer				0 	//工程车
+#define hero						0		//英雄车
+
+#define pritnf_JY901  	0		//JY901是否有数据
+#define pritnf_Gimbal 	1		//云台两轴Can是否有数据
+#define pritnf_Imu    	0   //imu是否有数据
+#define printf_Referee 	0		//裁判系统是否有数据
+#define printf_Chassis  0   //底盘跟随pid数据
+
+#define USE_FULL_ASSERT 		//断言，调试用
+#undef  USE_FULL_ASSERT
+
+#undef configGENERATE_RUN_TIME_STATS			//时间统计  所有相关的内容关键词“时间统计”
 
 /* USER CODE END Includes */
+#if infantry
 
+#endif
+#if engineer
+
+#endif
+#if	hero
+
+#endif	
 /* Private define ------------------------------------------------------------*/
 
 extern void Error_Handler(void);

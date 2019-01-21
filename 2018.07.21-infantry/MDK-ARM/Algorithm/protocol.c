@@ -1,31 +1,29 @@
-/**
-  ******************************************************************************
-  * @file           : protocol.c
-  * @brief          : crc校验函数
-  ******************************************************************************
-  *
-	*对一串数据的帧头CRC8校验和整帧CRC16校验
-	*为一串数据加入帧头CRC8校验和整帧CRC16校验				 	
-  *接口函数：
-	*					uint8_t verify_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength)
-	*					uint8_t	append_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength)
-	*					uint8_t verify_crc16_check_sum(uint8_t* pchMessage, uint32_t dwLength)
-	*					uint16_t append_crc16_check_sum(uint8_t* pchMessage, uint32_t dwLength)
-	*					
-  ******************************************************************************
-  */
-	
-/*
-  *内部函数：
-	*					uint8_t verify_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength)
-	*					uint8_t	append_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength)
-	*					uint8_t verify_crc16_check_sum(uint8_t* pchMessage, uint32_t dwLength)
-	*					uint16_t append_crc16_check_sum(uint8_t* pchMessage, uint32_t dwLength)
-  */
+/*******************************************************************************
+                      版权所有 (C), 2017-,NCUROBOT
+********************************************************************************
+* 文 件 名   : protocol.c
+* 版 本 号   : 初稿
+* 作    者   : NCUERM
+* 生成日期   : 2018年7月
+* 最近修改   :
+* 功能描述   : crc校验函数
+* 函数列表   :		
+*						  uint8_t verify_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength)
+*						  uint8_t	append_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength)
+*					    uint8_t verify_crc16_check_sum(uint8_t* pchMessage, uint32_t dwLength)
+*						  uint16_t append_crc16_check_sum(uint8_t* pchMessage, uint32_t dwLength)
+*
+*******************************************************************************/
 
+/* 包含头文件 ----------------------------------------------------------------*/
 #include "protocol.h"
+/* 内部自定义数据类型 --------------------------------------------------------*/
 
-//crc8 generator polynomial:G(x)=x8+x5+x4+1
+/* 内部宏定义 ----------------------------------------------------------------*/
+
+/* 任务相关信息定义-----------------------------------------------------------*/
+
+/* 内部常量定义---------------------------------------------------------------*/
 const uint8_t CRC8_INIT     = 0xff;
 const uint8_t CRC8_TAB[256] = {
   0x00, 0x5e, 0xbc, 0xe2, 0x61, 0x3f, 0xdd, 0x83, 0xc2, 0x9c, 0x7e, 0x20, 0xa3, 0xfd, 0x1f, 0x41,
@@ -82,6 +80,16 @@ const uint16_t wCRC_Table[256] = {
   0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
 };
 
+/* 外部变量声明 --------------------------------------------------------------*/
+
+/* 外部函数原型声明 ----------------------------------------------------------*/
+
+/* 内部变量 ------------------------------------------------------------------*/
+
+/* 函数原型声明 ----------------------------------------------------------*/
+
+//crc8 generator polynomial:G(x)=x8+x5+x4+1
+
 /*
 ** Descriptions: CRC8 checksum function
 ** Input: Data to check,Stream length, initialized checksum
@@ -123,7 +131,7 @@ uint8_t append_crc8_check_sum(uint8_t* pchMessage, uint16_t dwLength)
   uint8_t ucCRC = 0;
   if ((pchMessage == 0) || (dwLength <= 2))
     return 0 ;
-  ucCRC                    = get_crc8_check_sum((uint8_t*)pchMessage, dwLength - 1, CRC8_INIT);
+  ucCRC = get_crc8_check_sum((uint8_t*)pchMessage, dwLength - 1, CRC8_INIT);
   pchMessage[dwLength - 1] = ucCRC;
 	  return ucCRC;
 }

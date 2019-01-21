@@ -8,11 +8,16 @@
 #include "gpio.h"
 #include "can.h"
 #include "spi.h"
+#include "adc.h"
 #include "communication.h "
 #include "Motor_USE_TIM.h"
 #include "Motor_USE_CAN.h"
+#include "minipc.h"
+#include "Power_restriction.h"
+#include "atom_imu.h"
+#include "decode.h"
 
-
-
+extern volatile unsigned long long FreeRTOSRunTimeTicks;
+void ConfigureTimerForRunTimeStats(void);
 void BSP_Init(void);
 #endif

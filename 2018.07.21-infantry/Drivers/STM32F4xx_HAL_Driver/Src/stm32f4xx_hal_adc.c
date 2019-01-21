@@ -1096,7 +1096,9 @@ HAL_StatusTypeDef HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, ui
     hadc->Instance->CR2 |= ADC_CR2_DMA;
     
     /* Start the DMA channel */
-    HAL_DMA_Start_IT(hadc->DMA_Handle, (uint32_t)&hadc->Instance->DR, (uint32_t)pData, Length);
+//    HAL_DMA_Start_IT(hadc->DMA_Handle, (uint32_t)&hadc->Instance->DR, (uint32_t)pData, Length);
+		/*不开ADC的DMA的中断 _改库*/
+		HAL_DMA_Start(hadc->DMA_Handle, (uint32_t)&hadc->Instance->DR, (uint32_t)pData, Length);
     
     /* Check if Multimode enabled */
     if(HAL_IS_BIT_CLR(ADC->CCR, ADC_CCR_MULTI))

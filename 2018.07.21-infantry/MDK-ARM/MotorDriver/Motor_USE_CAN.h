@@ -45,10 +45,14 @@ extern moto_measure_t   yaw_get;
 void Cloud_Platform_Motor(CAN_HandleTypeDef * hcan,int16_t yaw,int16_t	pitch);
 void Chassis_Motor( CAN_HandleTypeDef * hcan,int16_t iq1, int16_t iq2, int16_t iq3, int16_t iq4);
 void Allocate_Motor(CAN_HandleTypeDef * hcan,int16_t value);
-void get_moto_measure(moto_measure_t *ptr,CAN_HandleTypeDef * hcan);
+void get_moto_measure_3508(moto_measure_t *ptr,CAN_HandleTypeDef * hcan);
+void get_moto_measure_6623(moto_measure_t *ptr,CAN_HandleTypeDef * hcan);
+void get_moto_measure_2006(moto_measure_t *ptr,CAN_HandleTypeDef * hcan);
 void get_moto_offset(moto_measure_t *ptr,CAN_HandleTypeDef * hcan);
 void get_total_angle(moto_measure_t *p);
-
+void Cloud_Platform_Motor_jiaozhun(CAN_HandleTypeDef * hcan);
+void Cloud_Platform_Motor_Disable(CAN_HandleTypeDef * hcan);
+void Chassis_Motor_Disable( CAN_HandleTypeDef * hcan);
 
 
 #endif

@@ -5,17 +5,81 @@
 #include "stm32f4xx_hal.h"
 #include "spi.h"
 #include "usart.h"
+#include "string.h"
 
-#define maxsize 100
-extern uint8_t USART1_RX_DATA[(maxsize)];//遥控
+
+#define SizeofReferee 100
+#define SizeofRemote 18
+#define SizeofJY901	 33
+#define SizeofMinipc  9
+extern uint8_t USART1_RX_DATA[(SizeofRemote)];//遥控
 extern uint16_t USART1_RX_NUM;
-extern uint8_t USART6_RX_DATA[(maxsize)];//裁判系统
+extern uint8_t USART6_RX_DATA[(SizeofReferee)];//裁判系统
 extern uint16_t USART6_RX_NUM;
-extern uint8_t UART8_RX_DATA[(maxsize)];//外接陀螺仪
+extern uint8_t UART8_RX_DATA[(SizeofJY901)];//外接陀螺仪
 extern uint16_t UART8_RX_NUM;
 
 /* 本模块向外部提供的数据类型定义 --------------------------------------------*/
-typedef struct TY901_t   //外接陀螺仪    可以改成套用电机参数的结构体moto_measure_t  _待续
+///////////外接陀螺仪////////////////
+struct STime
+{
+	unsigned char ucYear;
+	unsigned char ucMonth;
+	unsigned char ucDay;
+	unsigned char ucHour;
+	unsigned char ucMinute;
+	unsigned char ucSecond;
+	unsigned short usMiliSecond;
+};
+struct SAcc
+{
+	short a[3];
+	short T;
+};
+struct SGyro
+{
+	short w[3];
+	short T;
+};
+struct SAngle
+{
+	short Angle[3];
+	short T;
+};
+struct SMag
+{
+	short h[3];
+	short T;
+};
+
+struct SDStatus
+{
+	short sDStatus[4];
+};
+
+struct SPress
+{
+	long lPressure;
+	long lAltitude;
+};
+
+struct SLonLat
+{
+	long lLon;
+	long lLat;
+};
+
+struct SGPSV
+{
+	short sGPSHeight;
+	short sGPSYaw;
+	long lGPSVelocity;
+};
+struct SQ
+{ short q[4];
+};
+
+typedef struct    //外接陀螺仪    可以改成套用电机参数的结构体moto_measure_t  _待续
 {
 	float err;
 	float JY901_angle;
@@ -24,6 +88,13 @@ typedef struct TY901_t   //外接陀螺仪    可以改成套用电机参数的结构体moto_measur
 	float angle_round;
   float final_angle;
   float last_final_angle;
+	float vx;
+	float vy;	
+	float vz;
+	float vx_last;
+	float vy_last;
+	float vz_last;
+	int8_t frame;
 	uint8_t times;
 }JY901_t;
 ///////////////遥控/////////////////////
@@ -73,212 +144,14 @@ typedef struct
   int16_t mz;
 }IMUDataTypedef;
 
-/////****************裁判系统*******************/
-////typedef __packed struct
-////{
-////	uint8_t SOF;          //数据起始字节，固定为0xA5          
-////	uint16_t DataLength;  //数据长度
-////	uint8_t Seq;          //包序号
-////	uint8_t CRC8;         //帧头CRC校验
-////}tFrameHeader;//帧头
 
-////typedef enum                 //枚举类型，命令id_变更
-////{
-////	GameInfo = 0x0001,      //比赛机器人状态    发送频率 10 Hz
-////	DamagedData = 0x0002,             //伤害数据，实时发送
-////	ShootData = 0x0003,                //射击数据，实时发送
-////	PowerANDHeat = 0x0004,							//功率和热量数据50hz频率
-////	RfidData = 0x0005,								//场地交互数据检测到RFID后10hz周期发送
-////	GameData = 0x0006,								//比赛结果数据
-////	BuffChangeData = 0x0007,					//buff状态任意buff状态改变后发送一次
-////	PositionData = 0x0008,						//机器人位置信息和枪口朝向位置
-////	SelfDefinedData =0x0100, //学生自定义数据      id号_变更  
-////	Wrong = 0x1301       //枚举无效，只是为了使该枚举大小为2字节
-////}tCmdID; 
-
-////typedef __packed struct
-////{
-////	uint16_t stageRemainTime;       //比赛剩余时间（从倒计时三分钟开始计算，单位 s）
-////	uint8_t gameProgress;     //比赛进程
-////	uint8_t roboLevel;        //机器人等级
-////	uint16_t remainHp;        //剩余血量
-////	uint16_t maxHp;           //最大血量
-////}tGameInfo; //比赛机器人状态（0x0001）
-
-////typedef __packed struct
-////{
-
-////	uint8_t armorType :4;
-////	uint8_t hurtType : 4;
-////	
-////}tDamagedData;   //伤害数据(0x002)
-
-////typedef __packed struct
-////{
-////	uint8_t bulletType;
-////	uint8_t bulletFreq;
-////	float  bulletSpeed;
-////	
-////}tShootData;   //射击数据(0x003)
-
-////typedef __packed struct
-////{
-////	
-//// float chassisVolt;
-//// float chassisCurrent;
-//// float chassisPower;
-//// float chassisPowerBuffer;
-////	uint16_t shootHeat0;
-////	uint16_t shootHeat1;
-////	
-////}tPowerANDHeat;   //功率和热量数据50hz频率(0x004)
-
-
-////typedef __packed struct
-////{
-////	
-////	uint8_t cardType;
-////	uint8_t cardldx;
-
-////}tRfidData;							//场地交互数据检测到RFID后10hz周期发送(0x005)
-
-////typedef __packed struct
-////{
-////	
-////	uint8_t winner;
-
-////}tGameData;								//比赛结果数据(0x006)
-
-////typedef __packed struct
-////{
-////	
-////	uint16_t buffMusk;
-
-////}tBuffChangeData;					//buff状态任意buff状态改变后发送一次(0x007)
-
-////typedef __packed struct
-////{
-////	
-////  float x;
-////	float y;
-////	float z;
-////  float yaw;
-////	
-////}tPositionData;						//机器人位置信息和枪口朝向位置(0x008)
-////typedef __packed struct
-////{
-////	float data1;
-////	float data2;
-////	float data3;
-////	uint8_t data4;
-////}tSelfDefine;                     //自定义数据(0x100)
-
-
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	__packed union 
-////	{
-////		tGameInfo    			GameInfo;  				  //比赛机器人状态    发送频率 10 Hz
-////		tDamagedData  		DamagedData;        //伤害数据，实时发送
-////		tShootData     		ShootData;          //射击数据，实时发送
-////		tPowerANDHeat			PowerANDHeat;				//功率和热量数据50hz频率
-////		tRfidData					RfidData;						//场地交互数据检测到RFID后10hz周期发送
-////		tGameData					GameData;						//比赛结果数据
-////		tBuffChangeData		BuffChangeData;			//buff状态任意buff状态改变后发送一次
-////		tPositionData			PositionData;				//机器人位置信息和枪口朝向位置
-////		tSelfDefine       SelfDefinedData; 		//学生自定义数据      
-////	}Data;
-////	uint16_t        CRC16;         //之前所有数据CRC校验   注意此数据和之前的数据可能不连续，所以不要直接使用，若需要直接使用，必须在此赋值
-////}tFrame;  //数据帧
-
-
-//////typedef __packed struct
-//////{
-//////	tFrameHeader    FrameHeader;
-//////	tCmdID          CmdID;
-//////  tSelfDefine     SelfDefine;
-//////	uint16_t        CRC16;         //之前所有数据CRC校验   注意此数据和之前的数据可能不连续，所以不要直接使用，若需要直接使用，必须在此赋值
-//////}tFrame;  //数据帧
-
-
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	tGameInfo       GameInfo;   
-////	uint16_t        CRC16;         //数据CRC校验
-////}tGameInfoFrame;  //比赛机器人状态（0x0001）
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	tDamagedData    DamagedData;   
-////	uint16_t        CRC16;         //数据CRC校验
-////}tDamagedDataFrame; //实时血量变化数据（0x0002）
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	tShootData      ShootData;   
-////	uint16_t        CRC16;         //数据CRC校验
-////}tShootDataFrame;    //射击数据(0x003)  
-
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	tPowerANDHeat   PowerANDHeat;   
-////	uint16_t        CRC16;         //数据CRC校验
-////}tPowerANDHeatFrame;   //功率和热量数据50hz频率(0x004)    
-
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	tRfidData   		RfidData;   
-////	uint16_t        CRC16;         //数据CRC校验
-////}tRfidDataFrame;			//场地交互数据检测到RFID后10hz周期发送(0x005)
-
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	tGameData   		GameData;   
-////	uint16_t        CRC16;         //数据CRC校验
-////}tGameDataFrame;								//比赛结果数据(0x006)
-
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	tBuffChangeData BuffChangeData;   
-////	uint16_t        CRC16;         //数据CRC校验
-////}tBuffChangeDataFrame;					//buff状态任意buff状态改变后发送一次(0x007);	
-
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	tPositionData   PositionData;   
-////	uint16_t        CRC16;         //数据CRC校验
-////}tPositionDataFrame;					 	//机器人位置信息和枪口朝向位置(0x008)
-
-////typedef __packed struct
-////{
-////	tFrameHeader    FrameHeader;
-////	tCmdID          CmdID;
-////	tSelfDefine     SelfDefine;   
-////	uint16_t        CRC16;         //数据CRC校验
-////}tSelfDefineFrame;               //自定义数据(0x100);	
 /* 本模块向外部提供的宏定义 --------------------------------------------------*/
 
 /* 本模块向外部提供的接口常量声明 --------------------------------------------*/
 /**************外接陀螺仪*******************/
-extern JY901_t * ptr_jy901_t_yaw;//外接陀螺仪数据
-extern JY901_t * ptr_jy901_t_pit;
-
+extern JY901_t  	ptr_jy901_t_yaw;//外接陀螺仪数据
+extern JY901_t  	ptr_jy901_t_pit;
+extern JY901_t    ptr_jy901_t_angular_velocity;
 /*****************mpu6500*****************/
 extern uint8_t MPU_id;
 extern IMUDataTypedef imu_data;
@@ -443,5 +316,79 @@ uint8_t IST_Reg_Read_By_MPU(uint8_t addr);
 #define MPU6500_NSS_Low() HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET)
 #define MPU6500_NSS_High() HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET)
 
+//JY901 全局配置
+#define SAVE 			0x00
+#define CALSW 		0x01
+#define RSW 			0x02
+#define RRATE			0x03
+#define BAUD 			0x04
+#define AXOFFSET	0x05
+#define AYOFFSET	0x06
+#define AZOFFSET	0x07
+#define GXOFFSET	0x08
+#define GYOFFSET	0x09
+#define GZOFFSET	0x0a
+#define HXOFFSET	0x0b
+#define HYOFFSET	0x0c
+#define HZOFFSET	0x0d
+#define D0MODE		0x0e
+#define D1MODE		0x0f
+#define D2MODE		0x10
+#define D3MODE		0x11
+#define D0PWMH		0x12
+#define D1PWMH		0x13
+#define D2PWMH		0x14
+#define D3PWMH		0x15
+#define D0PWMT		0x16
+#define D1PWMT		0x17
+#define D2PWMT		0x18
+#define D3PWMT		0x19
+#define IICADDR		0x1a
+#define LEDOFF 		0x1b
+#define GPSBAUD		0x1c
 
+#define YYMM				0x30
+#define DDHH				0x31
+#define MMSS				0x32
+#define MS					0x33
+#define AX					0x34
+#define AY					0x35
+#define AZ					0x36
+#define GX					0x37
+#define GY					0x38
+#define GZ					0x39
+#define HX					0x3a
+#define HY					0x3b
+#define HZ					0x3c			
+#define Roll				0x3d
+#define Pitch				0x3e
+#define Yaw					0x3f
+#define TEMP				0x40
+#define D0Status		0x41
+#define D1Status		0x42
+#define D2Status		0x43
+#define D3Status		0x44
+#define PressureL		0x45
+#define PressureH		0x46
+#define HeightL			0x47
+#define HeightH			0x48
+#define LonL				0x49
+#define LonH				0x4a
+#define LatL				0x4b
+#define LatH				0x4c
+#define GPSHeight   0x4d
+#define GPSYAW      0x4e
+#define GPSVL				0x4f
+#define GPSVH				0x50
+#define q0          0x51
+#define q1          0x52
+#define q2          0x53
+#define q3          0x54
+      
+#define DIO_MODE_AIN 0
+#define DIO_MODE_DIN 1
+#define DIO_MODE_DOH 2
+#define DIO_MODE_DOL 3
+#define DIO_MODE_DOPWM 4
+#define DIO_MODE_GPS 5		
 #endif
