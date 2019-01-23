@@ -57,6 +57,6 @@
 "2018.07.12-infantry\data_pro_task.o"
 "..\DSP_LIB\arm_cortexM4lf_math.lib"
 --library_type=microlib --strict --scatter "2018.07.12-infantry\2018.07.sct"
---diag_suppress=L6329 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--diag_suppress=L6329 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
 --list "2018.07.map" -o 2018.07.12-infantry\2018.07.12-infantry
