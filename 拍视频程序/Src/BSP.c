@@ -8,7 +8,7 @@ void Power_Init(void)
 #if BoardNew
 
 HAL_GPIO_WritePin(GPIOH, GPIO_PIN_2, GPIO_PIN_SET);   //power1
-HAL_GPIO_WritePin(GPIOH, GPIO_PIN_3, GPIO_PIN_SET);   //power2
+HAL_GPIO_WritePin(GPIOH, GPIO_PIN_3, GPIO_PIN_RESET);   //power2
 HAL_GPIO_WritePin(GPIOH, GPIO_PIN_4, GPIO_PIN_SET);   //power3
 HAL_GPIO_WritePin(GPIOH, GPIO_PIN_5, GPIO_PIN_SET);   //power4
 
