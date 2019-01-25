@@ -114,42 +114,68 @@ int main(void)
   /* USER CODE END 3 */
 
 }
-// extern struct SGyro 		stcGyro;
-// extern struct SAngle 	stcAngle;
+/*测速模块*/
+#define GunLength 0.05
+#define MicroTime 0.000005
+
+uint32_t Micro_Tick; //单位0.005ms
+uint32_t Photoelectric_gate1 = 0,Photoelectric_gate2 = 0;
+uint16_t gate1_counter = 0,gate2_counter = 0;
+static float Golf_speed = 0;
+int16_t Golf_counter = 0;
+/*测速down*/
+
 void testTask(void const * argument)
 {
-	char InfoBuffer[1000];
-	int16_t angle[4];
+	
+//	char InfoBuffer[1000];
+
+	static double micro_timenow = 0;
+	static double micro_timelast = 0;
+	static double micro_time = 0;
+	int16_t angle[4];	
+	osDelay(200);//延时200ms
+	portTickType xLastWakeTime;
+  xLastWakeTime = xTaskGetTickCount();
+	
+	
 	for(;;)
 	{ 				
-		float pitch_angle;
-		pitch_angle = ptr_jy901_t_pit.final_angle;
-//		printf("\r\n %f",pitch_angle);
+		static uint16_t counter_last;
 		
-		
-		
+		RefreshTaskOutLineTime(testTask_ON);
+//		if(gate1_counter == gate2_counter)
+//		{
+//			Golf_speed = (float)(GunLength / MicroTime / (Photoelectric_gate1 - Photoelectric_gate2));
+
+//			if(counter_last != gate1_counter)
+//			{
+//				printf("Golf_speed = %4f\n",Golf_speed);
+//			}
+//			counter_last = gate1_counter;
+//		}
 //		vTaskGetRunTimeStats(InfoBuffer);
 //		printf("%s\r\n",InfoBuffer);
 //		vTaskList(InfoBuffer);
 //		printf("%s\n\r",InfoBuffer);
 
-//		int16_t  *ptr = angle; //初始化指针
-//			angle[0]	= (ptr_jy901_t_yaw.final_angle);
-//			angle[1]	= (ptr_jy901_t_angular_velocity.vz);
-//			angle[2]	= ((int16_t)pid_yaw_jy901.pos_out);
-//			angle[3]	= (int16_t)(-pid_yaw_jy901_spd.pos_out);
-//			/*用虚拟示波器，发送数据*/
-//			vcan_sendware((uint8_t *)ptr,4*sizeof(angle[0]));
-//		  vcan_sendware((uint8_t *)ptr,4*sizeof(angle[1]));
-//		  vcan_sendware((uint8_t *)ptr,4*sizeof(angle[2]));
-//		  vcan_sendware((uint8_t *)ptr,4*sizeof(angle[3]));
-//		
-//	   printf("yaw_set.expect_pc=%d\n\t",yaw_set.expect_pc);
-//		printf("pit_set.expect_pc=%d\n\t",pit_set.expect_pc);
-//		printf(" minipc_rx.angle_yaw=%d\n\t", (int16_t)minipc_rx.angle_yaw);
-//		printf(" minipc_rx.angle_pit=%d\n\t", (int16_t)minipc_rx.angle_pit);
+		  int16_t  *ptr = angle; //初始化指针
+			angle[0]	= (ptr_jy901_t_yaw.final_angle);
+			angle[1]	= (ptr_jy901_t_angular_velocity.vz);
+			angle[2]	= ((int16_t)pid_yaw_jy901.pos_out);
+			angle[3]	= (int16_t)(-pid_yaw_jy901_spd.pos_out);
+			/*用虚拟示波器，发送数据*/
+			vcan_sendware((uint8_t *)ptr,4*sizeof(angle[0]));
+		  vcan_sendware((uint8_t *)ptr,4*sizeof(angle[1]));
+		  vcan_sendware((uint8_t *)ptr,4*sizeof(angle[2]));
+		  vcan_sendware((uint8_t *)ptr,4*sizeof(angle[3]));
+		
+		printf("  pit=%d \n\t",pit_get.total_angle);
+	  printf("  yaw=%d \n\t",yaw_get.angle);
+		
 		HAL_GPIO_TogglePin(LED_RED_GPIO_Port,LED_RED_Pin); //Red
-		osDelay(100);
+		
+		osDelayUntil(&xLastWakeTime,100);
 	}
 }
 
@@ -221,7 +247,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler */
   /* User can add his own implementation to report the HAL error return state */
-  while(1) 
+	while(1) 
   {
 
   }
@@ -247,7 +273,7 @@ void assert_failed(uint8_t* file, uint32_t line)
 	for(;;)
 	{	
 #if BoardNew
-		HAL_GPIO_TogglePin(GPIOG,GPIO_PIN_1); 
+//		HAL_GPIO_TogglePin(GPIOG,GPIO_PIN_1); 
 #endif
 		HAL_Delay(500);
 	}	 //断言，闪烁LEDGRE_H（新板子）

@@ -70,45 +70,137 @@ static unsigned char ucRxCnt = 0;
 static unsigned char buff_transition[11] = {0}; //过渡段缓存
 static unsigned char buff_last[SizeofJY901] = {0};
 
+/**********************jy601***********************/
+
 void select(uint8_t * buff,uint8_t i)
 {
 	switch(buff[i+1])//判断数据是哪种数据，然后将其拷贝到对应的结构体中，有些数据包需要通过上位机打开对应的输出后，才能接收到这个数据包的数据
 	{
-		case 0x50:	memcpy(&stcTime,&buff[i+2],8);		break;
+//		case 0x50:	memcpy(&stcTime,&buff[i+2],8);		break;
 		case 0x51:	memcpy(&stcAcc,&buff[i+2],8);			break;
 		case 0x52:	memcpy(&stcGyro,&buff[i+2],8);		break;
 		case 0x53:	memcpy(&stcAngle,&buff[i+2],8);		break;
-		case 0x54:	memcpy(&stcMag,&buff[i+2],8);			break;
-		case 0x55:	memcpy(&stcDStatus,&buff[i+2],8);	break;
-		case 0x56:	memcpy(&stcPress,&buff[i+2],8);		break;
-		case 0x57:	memcpy(&stcLonLat,&buff[i+2],8);	break;
-		case 0x58:	memcpy(&stcGPSV,&buff[i+2],8);		break;
-		case 0x59:	memcpy(&stcQ,&buff[i+2],8);				break;
+//		case 0x54:	memcpy(&stcMag,&buff[i+2],8);			break;
+//		case 0x55:	memcpy(&stcDStatus,&buff[i+2],8);	break;
+//		case 0x56:	memcpy(&stcPress,&buff[i+2],8);		break;
+//		case 0x57:	memcpy(&stcLonLat,&buff[i+2],8);	break;
+//		case 0x58:	memcpy(&stcGPSV,&buff[i+2],8);		break;
+//		case 0x59:	memcpy(&stcQ,&buff[i+2],8);				break;
 	}
 }
 
 void JY901_Data_Pro()
 {	
-  int16_t data_sum=0;
 	
+		portTickType xLastWakeTime;
+	  portTickType xWakeTime;
+		xWakeTime = xTaskGetTickCount();
+	
+  int16_t data_sum=0;
+	static int16_t i=0;
 	uint8_t  * buff = UART8_RX_DATA;//串口8
-	/*寻找第一个帧头位置*/
-	for(uint8_t i = 0;i < SizeofJY901;i++)
+	
+	uint8_t JY_NUM = 0;
+	static uint8_t buff_last[11] = {0};  	 //上一帧的残余数据
+	static uint8_t index = 0;		
+	
+	//jy601
+	switch(buff[1])//判断数据是哪种数据，然后将其拷贝到对应的结构体中，有些数据包需要通过上位机打开对应的输出后，才能接收到这个数据包的数据
 	{
-		if(buff[i] == 0x55)
-		{
-			select(buff,i);
-			ucRxCnt = i;
-			break;
-		}
+
+		case 0x52:	memcpy(&stcGyro,&buff[2],8);		  break;
+		case 0x53:	memcpy(&stcAngle,&buff[2],8);		  break;
+
 	}
-	/*处理过渡段缓存*/
-			memcpy(buff_transition,&buff_last[ucRxCnt + 11],11 - ucRxCnt - 1);
-			memcpy(&buff_transition[11 - ucRxCnt - 1],buff_last,ucRxCnt + 1);
-			//保存上次缓存值
-			memcpy(buff_last,buff,11);
+	
+	
+		switch(buff[12])//判断数据是哪种数据，然后将其拷贝到对应的结构体中，有些数据包需要通过上位机打开对应的输出后，才能接收到这个数据包的数据
+	{
+
+		case 0x52:	memcpy(&stcGyro,&buff[13],8);		  break;
+		case 0x53:	memcpy(&stcAngle,&buff[13],8);		  break;
+
+	}
+	
+		
+		switch(buff[23])//判断数据是哪种数据，然后将其拷贝到对应的结构体中，有些数据包需要通过上位机打开对应的输出后，才能接收到这个数据包的数据
+	{
+
+		case 0x52:	memcpy(&stcGyro,&buff[24],8);		  break;
+		case 0x53:	memcpy(&stcAngle,&buff[24],8);		  break;
+
+	}
+	
+	//jy901
+	/*寻找第一个帧头位置*/
+//	for(uint8_t i = 0;i < SizeofJY901/3;i++)
+//	{
+//		if(buff[i] == 0x55)
+//		{
+//			select(buff,i);
+//			ucRxCnt = i;
+//			break;
+//		}
+//	}
+//	/*处理过渡段缓存*/
+//			memcpy(buff_transition,&buff_last[ucRxCnt + 11],11 - ucRxCnt - 1);
+//			memcpy(&buff_transition[11 - ucRxCnt - 1],buff_last,ucRxCnt + 1);
+//			//保存上次缓存值
+//			memcpy(buff_last,buff,11);
+//			
+//			select(buff_transition,0);
+
+//	printf("角速度:%3f,角度:%3f\n\r",(float)stcGyro.w[0]/32768*2000,(float)stcAngle.Angle[0]/32768*180);	
+	
+
+	
+			ptr_jy901_t_pit.JY901_angle = (float)stcAngle.Angle[1]*0.005493f;
+			ptr_jy901_t_yaw.JY901_angle = (float)stcAngle.Angle[2]*0.005493f;	
+	   
+//		if(pritnf_JY901){    //调试用
+//			printf("gz=%f\n",ptr_jy901_t_yaw.JY901_angle);
+//    	float *ptr = NULL; //初始化指针
+//			ptr = &(ptr_jy901_t_yaw.final_angle);	
+//			/*用虚拟示波器，发送数据*/
+//			vcan_sendware((uint8_t *)ptr,sizeof(ptr_jy901_t_yaw.final_angle));
+//		 }
+		if(ptr_jy901_t_yaw.times>5)
+			{
+//			ptr_jy901_t_pit.JY901_angle = Limit_filter(ptr_jy901_t_pit.JY901_angle_last,ptr_jy901_t_pit.JY901_angle,30);
+//	    ptr_jy901_t_yaw.JY901_angle = Limit_filter(ptr_jy901_t_yaw.JY901_angle_last,ptr_jy901_t_yaw.JY901_angle,30);
+				ptr_jy901_t_yaw.times=6;
+				ptr_jy901_t_yaw.err=ptr_jy901_t_yaw.JY901_angle-ptr_jy901_t_yaw.JY901_angle_last;
+			if(ptr_jy901_t_yaw.err<-180)  
+				ptr_jy901_t_yaw.angle_round++;
+			else if(ptr_jy901_t_yaw.err>180)  
+				ptr_jy901_t_yaw.angle_round--;
+			ptr_jy901_t_yaw.final_angle=(ptr_jy901_t_yaw.angle_round*360+ptr_jy901_t_yaw.JY901_angle-ptr_jy901_t_yaw.first_angle)*22.75f;
 			
-			select(buff_transition,0);
+			ptr_jy901_t_pit.err=ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.JY901_angle_last;
+			if(ptr_jy901_t_pit.err<-180) 
+				ptr_jy901_t_pit.angle_round++;
+			else if(ptr_jy901_t_pit.err>180)
+				ptr_jy901_t_pit.angle_round--;
+			//计算最终结果
+		  ptr_jy901_t_pit.final_angle=(ptr_jy901_t_pit.angle_round*360+ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.first_angle);
+//		  ptr_jy901_t_pit.final_angle=(ptr_jy901_t_pit.JY901_angle-ptr_jy901_t_pit.first_angle);
+			i=(xWakeTime-xLastWakeTime);
+		  xLastWakeTime=	xWakeTime;
+			}
+			else 
+			{
+				ptr_jy901_t_yaw.first_angle = ptr_jy901_t_yaw.JY901_angle;
+				ptr_jy901_t_pit.first_angle = ptr_jy901_t_pit.JY901_angle;
+			}
+			
+
+			ptr_jy901_t_yaw.JY901_angle_last = ptr_jy901_t_yaw.JY901_angle;
+			ptr_jy901_t_pit.JY901_angle_last = ptr_jy901_t_pit.JY901_angle;
+			ptr_jy901_t_yaw.times++;
+
+		
+			
+
 			ptr_jy901_t_angular_velocity.vx = stcGyro.w[0] * 0.06103516f;
 			ptr_jy901_t_angular_velocity.vy = stcGyro.w[1] * 0.06103516f;
 			ptr_jy901_t_angular_velocity.vz = stcGyro.w[2] * 0.06103516f;			
@@ -123,6 +215,64 @@ void JY901_Data_Pro()
 
 
 }
+
+/**********************jy601***********************/
+
+
+
+//void select(uint8_t * buff,uint8_t i)
+//{
+//	switch(buff[i+1])//判断数据是哪种数据，然后将其拷贝到对应的结构体中，有些数据包需要通过上位机打开对应的输出后，才能接收到这个数据包的数据
+//	{
+//		case 0x50:	memcpy(&stcTime,&buff[i+2],8);		break;
+//		case 0x51:	memcpy(&stcAcc,&buff[i+2],8);			break;
+//		case 0x52:	memcpy(&stcGyro,&buff[i+2],8);		break;
+//		case 0x53:	memcpy(&stcAngle,&buff[i+2],8);		break;
+//		case 0x54:	memcpy(&stcMag,&buff[i+2],8);			break;
+//		case 0x55:	memcpy(&stcDStatus,&buff[i+2],8);	break;
+//		case 0x56:	memcpy(&stcPress,&buff[i+2],8);		break;
+//		case 0x57:	memcpy(&stcLonLat,&buff[i+2],8);	break;
+//		case 0x58:	memcpy(&stcGPSV,&buff[i+2],8);		break;
+//		case 0x59:	memcpy(&stcQ,&buff[i+2],8);				break;
+//	}
+//}
+
+//void JY901_Data_Pro()
+//{	
+//  int16_t data_sum=0;
+//	
+//	uint8_t  * buff = UART8_RX_DATA;//串口8
+//	/*寻找第一个帧头位置*/
+//	for(uint8_t i = 0;i < SizeofJY901;i++)
+//	{
+//		if(buff[i] == 0x55)
+//		{
+//			select(buff,i);
+//			ucRxCnt = i;
+//			break;
+//		}
+//	}
+//	/*处理过渡段缓存*/
+//			memcpy(buff_transition,&buff_last[ucRxCnt + 11],11 - ucRxCnt - 1);
+//			memcpy(&buff_transition[11 - ucRxCnt - 1],buff_last,ucRxCnt + 1);
+//			//保存上次缓存值
+//			memcpy(buff_last,buff,11);
+//			
+//			select(buff_transition,0);
+//			ptr_jy901_t_angular_velocity.vx = stcGyro.w[0] * 0.06103516f;
+//			ptr_jy901_t_angular_velocity.vy = stcGyro.w[1] * 0.06103516f;
+//			ptr_jy901_t_angular_velocity.vz = stcGyro.w[2] * 0.06103516f;			
+//			
+//			ptr_jy901_t_angular_velocity.vz = Limit_filter(ptr_jy901_t_angular_velocity.vz_last,ptr_jy901_t_angular_velocity.vz,700);
+//			ptr_jy901_t_angular_velocity.vy = Limit_filter(ptr_jy901_t_angular_velocity.vy_last,ptr_jy901_t_angular_velocity.vy,700);
+//			
+//			ptr_jy901_t_angular_velocity.vy_last = ptr_jy901_t_angular_velocity.vy;
+//			ptr_jy901_t_angular_velocity.vz_last = ptr_jy901_t_angular_velocity.vz;
+//			
+
+
+
+//}
 
 /***************************************************************************************
 **

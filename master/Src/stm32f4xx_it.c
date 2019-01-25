@@ -44,6 +44,9 @@
 #include "pidwireless.h"
 #include "Motor_USE_CAN.h"
 #include "communication.h "
+#include "atom_imu.h"
+#include "decode.h"
+#include "SystemState.h"
 /* USER CODE END 0 */
 extern  osThreadId RemoteDataTaskHandle;
 extern  osThreadId RefereeDataTaskHandle;
@@ -54,6 +57,8 @@ extern CAN_HandleTypeDef hcan2;
 
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim12;
 
 extern DMA_HandleTypeDef hdma_adc1;
 
@@ -63,6 +68,15 @@ extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 
+extern xQueueHandle UART1_RX_QueHandle;//´®¿Ú1½ÓÊÕ¶ÓÁÐ
+extern xQueueHandle UART2_RX_QueHandle;//´®¿Ú2½ÓÊÕ¶ÓÁÐ
+extern xQueueHandle UART6_RX_QueHandle;//´®¿Ú6½ÓÊÕ¶ÓÁÐ
+extern xQueueHandle UART8_RX_QueHandle;//´®¿Ú8½ÓÊÕ¶ÓÁÐ
+
+//²âËÙÄ£¿é
+extern uint32_t Micro_Tick;
+extern uint32_t Photoelectric_gate1,Photoelectric_gate2;
+extern uint16_t gate1_counter,gate2_counter;
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
@@ -194,6 +208,51 @@ void TIM3_IRQHandler(void)
     HAL_TIM_IRQHandler(&htim3);
 }
 
+//¶¨Ê±Æ÷6ÖÐ¶Ï·þÎñº¯Êý
+void   TIM6_DAC_IRQHandler(void)
+{
+	    HAL_TIM_IRQHandler(&htim6);
+}
+/**
+* @brief This function handles TIM8 break interrupt and TIM12 global interrupt.
+*/
+void TIM8_BRK_TIM12_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM8_BRK_TIM12_IRQn 0 */
+
+  /* USER CODE END TIM8_BRK_TIM12_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim12);
+  /* USER CODE BEGIN TIM8_BRK_TIM12_IRQn 1 */
+
+  /* USER CODE END TIM8_BRK_TIM12_IRQn 1 */
+}
+/**
+* @brief This function handles EXTI line2 interrupt.
+*/
+void EXTI2_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI2_IRQn 0 */
+
+  /* USER CODE END EXTI2_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
+  /* USER CODE BEGIN EXTI2_IRQn 1 */
+
+  /* USER CODE END EXTI2_IRQn 1 */
+}
+
+/**
+* @brief This function handles EXTI line[9:5] interrupts.
+*/
+void EXTI9_5_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI9_5_IRQn 0 */
+
+  /* USER CODE END EXTI9_5_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_7);
+  /* USER CODE BEGIN EXTI9_5_IRQn 1 */
+
+  /* USER CODE END EXTI9_5_IRQn 1 */
+}
 /******************************************************************************/
 /* STM32F4xx Peripheral Interrupt Handlers                                    */
 /* Add here the Interrupt Handlers for the used peripherals.                  */
@@ -252,10 +311,12 @@ void UART8_IRQHandler(void)
 	tmp1 = __HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE);   //¿ÕÏÐÖÐ¶ÏÖÐ½«ÒÑÊÕ×Ö½ÚÊýÈ¡³öºó£¬Í£Ö¹DMA
   tmp2 = __HAL_UART_GET_IT_SOURCE(&huart8, UART_IT_IDLE);
 	
-   if((tmp1 != RESET) && (tmp2 != RESET))
-  { 
-		__HAL_DMA_DISABLE(&hdma_uart8_rx);
+   if((tmp1 != RESET)&&(tmp2 != RESET))
+	{
 		
+		RefreshDeviceOutLineTime(JY61_NO);
+		
+		__HAL_DMA_DISABLE(&hdma_uart8_rx);
 		__HAL_UART_CLEAR_IDLEFLAG(&huart8);
 		
 		UART8_RX_NUM=(SizeofJY901)-(hdma_uart8_rx.Instance->NDTR);
@@ -263,7 +324,6 @@ void UART8_IRQHandler(void)
 		JY901_Data_Pro();
 		__HAL_DMA_SET_COUNTER(&hdma_uart8_rx,SizeofJY901);
     __HAL_DMA_ENABLE(&hdma_uart8_rx);
-		
 	}
   HAL_UART_IRQHandler(&huart8);
   /* USER CODE BEGIN UART8_IRQn 1 */
@@ -286,9 +346,11 @@ void USART1_IRQHandler (void)
 			__HAL_DMA_SET_COUNTER(&hdma_usart1_rx,SizeofRemote);
 			__HAL_DMA_ENABLE(&hdma_usart1_rx);
 		
-  HAL_UART_IRQHandler(&huart1);
+		RefreshDeviceOutLineTime(Remote_NO);
+		
+    HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN UART8_IRQn 1 */
-   vTaskNotifyGiveFromISR(RemoteDataTaskHandle,&pxHigherPriorityTaskWoken);
+    vTaskNotifyGiveFromISR(RemoteDataTaskHandle,&pxHigherPriorityTaskWoken);
 		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);			
 	}
   /* USER CODE END UART8_IRQn 1 */
@@ -316,13 +378,6 @@ void USART2_IRQHandler (void)
 	}
   /* USER CODE END UART8_IRQn 1 */
 }
-
-
-
-
-
-
-
 
 
 
@@ -390,21 +445,29 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-	if (htim->Instance == TIM1) {
+	if (htim->Instance == TIM1) 
+	{
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  else if (htim->Instance == TIM5) {
-     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);
-
-	 		__HAL_TIM_ENABLE(&htim5);
+  else if (htim->Instance == TIM5) 
+	{
+		__HAL_TIM_ENABLE(&htim5);
 		__HAL_TIM_ENABLE_IT(&htim5,TIM_IT_UPDATE);
   }
   /* USER CODE END Callback 1 */
 	 else if(htim==(&htim3))
-    {
-       FreeRTOSRunTimeTicks++;  //Ê±¼ä½ÚÅÄ¼ÆÊýÆ÷¼ÓÒ»
-    }
+	{
+		 FreeRTOSRunTimeTicks++;  //Ê±¼ä½ÚÅÄ¼ÆÊýÆ÷¼ÓÒ»
+	}	
+	else if(htim == (&htim12))
+	{
+		Micro_Tick++;
+	}
+	else if(htim == (&htim6))
+	{
+		RefreshSysTime();
+	}
 }
 /* USER CODE BEGIN 1 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)  //½ÓÊÕÍê³É            ÔÝÊ±²»¼ÓÈÎÎñÍ¨Öª£¬ºóÐøÌÖÂÛ¡¡¡¡_´ýÐø
@@ -430,10 +493,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)  //½ÓÊÕÍê³É            Ô
 */
 	}else if(huart == &huart3)
 	{
-			uint8_t Res = 0;
-			HAL_UART_Receive(&huart3, &Res, 1,1);//¶ÁÈ¡½ÓÊÕµ½µÄÊý¾Ý
-		  /*ÎÞÏßµ÷²ÎµÄ´¦Àíº¯Êý*/
-			PID_UART_IRQHandler(&huart3, Res);
+//			uint8_t Res = 0;
+//			HAL_UART_Receive(&huart3, &Res, 1,1);//¶ÁÈ¡½ÓÊÕµ½µÄÊý¾Ý
+//		  /*ÎÞÏßµ÷²ÎµÄ´¦Àíº¯Êý*/
+//			PID_UART_IRQHandler(&huart3, Res);
 	}
 //	else if(huart == &huart6)
 //	{
@@ -458,7 +521,9 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
 		{
 			case 0x205:
 			{
-
+				
+       RefreshDeviceOutLineTime(MotorY_NO);
+				
 				if(yaw_get.msg_cnt++ <= 50)
 				{
 					get_moto_offset(&yaw_get,&hcan1);
@@ -470,6 +535,9 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
 			}break;
 			case 0x206:
 			{
+				
+				RefreshDeviceOutLineTime(MotorP_NO);
+				
 				if(pit_get.msg_cnt++ <= 50)
 				{
 					get_moto_offset(&pit_get,&hcan1);
@@ -480,6 +548,9 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
 			}break;
 			case 0x201:
 			{
+				
+				RefreshDeviceOutLineTime(MotorB_NO);
+				
 				if(moto_dial_get.msg_cnt++ <= 50)	
 				{
 					get_moto_offset(&moto_dial_get,&hcan1);
@@ -501,10 +572,10 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
 //		HAL_CAN_Receive(&hcan1,CAN_FIFO0,10);
 		switch(hcan->pRxMsg->StdId)
 		{
-			case CAN_3510Moto1_ID:
-			case CAN_3510Moto2_ID:
-			case CAN_3510Moto3_ID:
-			case CAN_3510Moto4_ID:
+			case CAN_3510Moto1_ID:     RefreshDeviceOutLineTime(Motor1_NO);
+			case CAN_3510Moto2_ID:     RefreshDeviceOutLineTime(Motor2_NO);
+			case CAN_3510Moto3_ID:     RefreshDeviceOutLineTime(Motor3_NO);
+			case CAN_3510Moto4_ID:     RefreshDeviceOutLineTime(Motor4_NO);
 			{
 				static uint8_t i;
 				i = hcan->pRxMsg->StdId - CAN_3510Moto1_ID;
@@ -525,7 +596,19 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
 		}	
 	}
 }
-
-
+//Íâ²¿ÖÐ¶Ï»Øµ÷º¯Êý
+void	HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == GPIO_PIN_2)//gate1
+	{
+		Photoelectric_gate1 = Micro_Tick;
+		gate1_counter++;
+	}
+	else if(GPIO_Pin == GPIO_PIN_7)//gate2
+	{
+		Photoelectric_gate2 = Micro_Tick;
+		gate2_counter++;
+ 	}
+}
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

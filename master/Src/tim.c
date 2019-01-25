@@ -52,6 +52,7 @@
 TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim12;
 TIM_HandleTypeDef htim3;      //时间统计函数时基 
+TIM_HandleTypeDef htim6;
 
 /* TIM5 init function */
 void MX_TIM5_Init(void)
@@ -111,12 +112,11 @@ void MX_TIM5_Init(void)
 void MX_TIM12_Init(void)
 {
   TIM_ClockConfigTypeDef sClockSourceConfig;
-  TIM_OC_InitTypeDef sConfigOC;
 
   htim12.Instance = TIM12;
-  htim12.Init.Prescaler = 8400-1;
+  htim12.Init.Prescaler = 84 - 1;
   htim12.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim12.Init.Period = 200-1;
+  htim12.Init.Period = 5 - 1;
   htim12.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_Base_Init(&htim12) != HAL_OK)
   {
@@ -128,27 +128,8 @@ void MX_TIM12_Init(void)
   {
     Error_Handler();
   }
-
-  if (HAL_TIM_PWM_Init(&htim12) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 20;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  HAL_TIM_MspPostInit(&htim12);
+	
+	HAL_TIM_Base_Start_IT(&htim12); //使能定时器12和定时器12更新中断：TIM_IT_UPDATE   
 
 }
 /* TIM3 init function */
@@ -164,6 +145,19 @@ void MX_TIM3_Init(void)
     HAL_TIM_Base_Start_IT(&htim3); //使能定时器3和定时器3更新中断：TIM_IT_UPDATE   
 }
 
+/* TIM6 init function */
+void MX_TIM6_Init(void)
+{
+	  htim6.Instance=TIM6;                          //通用定时器6
+    htim6.Init.Prescaler=840-1;                     //分频系数
+    htim6.Init.CounterMode=TIM_COUNTERMODE_UP;    //向上计数器
+    htim6.Init.Period=100-1;                        //自动装载值
+    htim6.Init.ClockDivision=TIM_CLOCKDIVISION_DIV1;//时钟分频因子
+    HAL_TIM_Base_Init(&htim6);
+    
+    HAL_TIM_Base_Start_IT(&htim6); //使能定时器6和定时器6更新中断：TIM_IT_UPDATE  
+}
+
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 {
 
@@ -174,6 +168,10 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
   /* USER CODE END TIM12_MspInit 0 */
     /* TIM12 clock enable */
     __HAL_RCC_TIM12_CLK_ENABLE();
+
+    /* TIM12 interrupt Init */
+    HAL_NVIC_SetPriority(TIM8_BRK_TIM12_IRQn, 4, 0);
+    HAL_NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
   /* USER CODE BEGIN TIM12_MspInit 1 */
 
   /* USER CODE END TIM12_MspInit 1 */
@@ -186,7 +184,14 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 		__HAL_RCC_TIM3_CLK_ENABLE();            //使能TIM3时钟
 		HAL_NVIC_SetPriority(TIM3_IRQn,1,0);    //设置中断优先级，抢占优先级1，子优先级0
 		HAL_NVIC_EnableIRQ(TIM3_IRQn);          //开启ITM3中断  
+	}else if(tim_baseHandle->Instance==TIM6)
+	{
+		__HAL_RCC_TIM6_CLK_ENABLE();            //使能TIM6时钟
+		HAL_NVIC_SetPriority(TIM6_DAC_IRQn,2,0);    //设置中断优先级，抢占优先级1，子优先级0
+		HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);          //开启ITM6中断  
 	}
+	
+	
 }
 
 
@@ -242,10 +247,17 @@ void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* tim_pwmHandle)
     /* Peripheral clock disable */
   }else if(tim_pwmHandle->Instance==TIM12)
 	{
-  /* USER CODE BEGIN TIM5_MspDeInit 1 */
+  /* USER CODE BEGIN TIM12_MspDeInit 0 */
+
+  /* USER CODE END TIM12_MspDeInit 0 */
+    /* Peripheral clock disable */
     __HAL_RCC_TIM12_CLK_DISABLE();
 
-  /* USER CODE END TIM5_MspDeInit 1 */
+    /* TIM12 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(TIM8_BRK_TIM12_IRQn);
+  /* USER CODE BEGIN TIM12_MspDeInit 1 */
+
+  /* USER CODE END TIM12_MspDeInit 1 */
 	}
 } 
 

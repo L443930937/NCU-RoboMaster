@@ -1,6 +1,6 @@
 /* 包含头文件----------------------------------------------------------------*/
 #include "data_pro_task.h"
-
+#include "SystemState.h"
 /* 内部宏定义----------------------------------------------------------------*/
 #define press_times  20
 #define VAL_LIMIT(val, min, max)\
@@ -20,6 +20,9 @@ else if(val>=max)\
 /* 内部常量定义--------------------------------------------------------------*/
 pid_t pid_minipc_yaw={0};
 pid_t pid_minipc_pit={0};
+
+#define REMOTE_PERIOD 1
+#define MINIPC_PERIOD 2
 /* 外部变量声明--------------------------------------------------------------*/
 
 /* 调用的外部函数原型声明------------------------------------------------------
@@ -71,15 +74,15 @@ void RemoteControlProcess()
 					 {
 						  pit_set.expect = pit_set.expect +(0x400-RC_Ctl.rc.ch3)/20;	
 							yaw_set.expect = yaw_set.expect +(0x400-RC_Ctl.rc.ch2)/20;	
-							moto_3508_set.dstVmmps_X=(-(RC_Ctl.rc.ch0-0x400)*5);
-							moto_3508_set.dstVmmps_Y=(-(RC_Ctl.rc.ch1-0x400)*5);
+							moto_3508_set.dstVmmps_X=((RC_Ctl.rc.ch0-0x400)*5);
+							moto_3508_set.dstVmmps_Y=((RC_Ctl.rc.ch1-0x400)*5);
 					 }
 					 else
 					 {
 						  pit_set.expect = pit_set.expect +(0x400-RC_Ctl.rc.ch3)/20;	
 							yaw_set.expect = yaw_set.expect +(0x400-RC_Ctl.rc.ch2)/20;	
 							moto_3508_set.dstVmmps_W=((RC_Ctl.rc.ch0-0x400)*5);
-							moto_3508_set.dstVmmps_Y=-(-(RC_Ctl.rc.ch1-0x400)*5);
+							moto_3508_set.dstVmmps_Y=((RC_Ctl.rc.ch1-0x400)*5);
 					 }
 
 
@@ -89,6 +92,7 @@ void RemoteControlProcess()
 							press_counter=press_times+1;
 									if(RC_Ctl.rc.s1==1)
 									{
+										
 										shot_anjian_counter++;
 										if(shot_anjian_counter > shot_frequency)
 										{
@@ -100,6 +104,7 @@ void RemoteControlProcess()
 									}
                   else if(RC_Ctl.rc.s1==2)
                   {
+										chassis_gimble_Mode_flg=1;
                     ptr_heat_gun_t.sht_flg=2;
                   }
                   else
@@ -109,10 +114,10 @@ void RemoteControlProcess()
                   }
 								
 				
-//							if(RC_Ctl.rc.s1==2)
-//									{
-//										HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
-//									}
+							if(RC_Ctl.rc.s1==2)
+									{
+										HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
+									}
 					}
 }
 
@@ -214,16 +219,23 @@ void hard_brak()
 void Remote_Data_Task(void const * argument)
 {
 	uint32_t NotifyValue;
+	
+		portTickType xLastWakeTime;
+		xLastWakeTime = xTaskGetTickCount();
+	
+	
 	for(;;)
 	{
 		
 		   NotifyValue=ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
     if(NotifyValue==1)
 		{
+			
 			NotifyValue=0;
 			HAL_GPIO_TogglePin(GPIOF,GPIO_PIN_14); //GRE_main
 			
-			  Remote_Ctrl();
+//			RefreshTaskOutLineTime(RemoteDataTask_ON);
+			Remote_Ctrl();
 				switch(RC_Ctl.rc.s2)
 				{
 					case 1: RemoteControlProcess();break; 
@@ -241,6 +253,7 @@ void Remote_Data_Task(void const * argument)
 
             press_counter++;
 		}
+			osDelayUntil(&xLastWakeTime, REMOTE_PERIOD);
 	}
 }
 
@@ -324,6 +337,9 @@ void MiniPC_Data_task(void const * argument)
 	for(;;)
 	{
 		
+		 portTickType xLastWakeTime;
+		 xLastWakeTime = xTaskGetTickCount();
+		
 	   NotifyValue=ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
     if(NotifyValue==1)
 		{
@@ -342,7 +358,7 @@ void MiniPC_Data_task(void const * argument)
 			pit_set.expect=minipc_rx.angle_pit+pit_get.total_angle;
 			yaw_set.mode = minipc_rx.state_flag;
 			
-//			osDelay(5);
+			osDelayUntil(&xLastWakeTime, MINIPC_PERIOD);
 		}
 	}
 }

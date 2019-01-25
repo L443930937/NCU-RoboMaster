@@ -14,8 +14,22 @@
 #include "Motor_USE_CAN.h"
 #include "minipc.h"
 #include "Power_restriction.h"
+#include "atom_imu.h"
+#include "decode.h"
+#include "SystemState.h"
+
+
+extern xQueueHandle UART1_RX_QueHandle;//
+extern xQueueHandle UART2_RX_QueHandle;//
+extern xQueueHandle UART6_RX_QueHandle;//
+extern xQueueHandle UART8_RX_QueHandle;//
+
 
 extern volatile unsigned long long FreeRTOSRunTimeTicks;
 void ConfigureTimerForRunTimeStats(void);
 void BSP_Init(void);
+void JY61_SLEEPorUNSLEEP(UART_HandleTypeDef *huart);
+void JY61_Frame(void);
+
+
 #endif

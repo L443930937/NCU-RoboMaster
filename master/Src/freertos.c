@@ -63,6 +63,9 @@
  osThreadId GimbalTaskHandle;		 	//= 0;
  osThreadId GunTaskHandle; 				//= 0;
  osThreadId MiniPCDataTaskHandle;
+ osThreadId LedTaskHandle;
+ osThreadId vOutLineCheckTaskHandle;
+ osThreadId CheckTaskHandle;
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
@@ -76,6 +79,9 @@ extern void Referee_Data_Task(void const * argument);
 extern void Gimbal_Contrl_Task(void const * argument);
 extern void Gun_Task(void const * argument);
 extern void MiniPC_Data_task(void const * argument);
+extern void Led_Task(void const * argument);
+extern void vOutLineCheck_Task(void const *argument);
+extern void Check_Task(void const *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -110,7 +116,7 @@ void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-	osThreadDef(Task1, testTask, osPriorityLow, 0, 512);
+	osThreadDef(Task1, testTask, osPriorityNormal, 0, 256);
 	testTaskHandle = osThreadCreate(osThread(Task1), NULL);
 	
 	osThreadDef(ChassisTask, Chassis_Contrl_Task, osPriorityNormal, 0, 256);
@@ -122,8 +128,8 @@ void MX_FREERTOS_Init(void) {
 //	osThreadDef(RefereeDataTask, Referee_Data_Task, osPriorityAboveNormal, 0, 128);
 //	RefereeDataTaskHandle = osThreadCreate(osThread(RefereeDataTask), NULL);
 
-	osThreadDef(MiniPCDataTask, MiniPC_Data_task, osPriorityAboveNormal, 0, 128);
-	MiniPCDataTaskHandle = osThreadCreate(osThread(MiniPCDataTask), NULL);
+//	osThreadDef(MiniPCDataTask, MiniPC_Data_task, osPriorityAboveNormal, 0, 128);
+//	MiniPCDataTaskHandle = osThreadCreate(osThread(MiniPCDataTask), NULL);
 
 	osThreadDef(GimbalTask, Gimbal_Contrl_Task, osPriorityNormal, 0, 256);
 	GimbalTaskHandle = osThreadCreate(osThread(GimbalTask), NULL);
@@ -131,6 +137,14 @@ void MX_FREERTOS_Init(void) {
 	osThreadDef(GunTask, Gun_Task, osPriorityNormal, 0, 128);
 	GunTaskHandle = osThreadCreate(osThread(GunTask), NULL);
 	
+	osThreadDef(LedTask, Led_Task, osPriorityNormal, 0, 64);
+	LedTaskHandle = osThreadCreate(osThread(LedTask), NULL);
+	
+//	osThreadDef(CheckTask, Check_Task, osPriorityNormal, 0, 128);
+//	CheckTaskHandle = osThreadCreate(osThread(CheckTask), NULL);
+	
+	osThreadDef(vOutLineCheckTask, vOutLineCheck_Task, osPriorityNormal, 0, 64);
+	vOutLineCheckTaskHandle = osThreadCreate(osThread(vOutLineCheckTask), NULL);
 
   /* USER CODE END RTOS_THREADS */
 

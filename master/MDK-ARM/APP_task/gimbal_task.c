@@ -1,6 +1,7 @@
 /* 包含头文件----------------------------------------------------------------*/
 #include "gimbal_task.h"
 #include "Power_restriction.h"
+#include "SystemState.h"
 /* 内部宏定义----------------------------------------------------------------*/
 
 /* 内部自定义数据类型--------------------------------------------------------*/
@@ -9,7 +10,7 @@ static  int16_t Pitch_Current_Value = 0;
 /* 任务相关信息定义----------------------------------------------------------*/
 
 /* 内部常量定义--------------------------------------------------------------*/
-
+#define GIMBAL_PERIOD 5
 /* 外部变量声明--------------------------------------------------------------*/
 Pos_Set  yaw_set;
 Pos_Set  pit_set;
@@ -29,6 +30,11 @@ pid_t pid_pit_spd   = {0};	//pit轴速度环
 pid_t pid_yaw_jy901_spd = {0};
 pid_t pid_pit_jy901 = {0};
 pid_t pid_pit_jy901_spd = {0};
+
+pid_t pid_yaw_saber = {0};  //外接陀螺仪 /*目前只用于位置环*/
+pid_t pid_yaw_saber_spd = {0};
+pid_t pid_pit_saber = {0};
+pid_t pid_pit_saber_spd = {0};
 /* 内部函数原型声明----------------------------------------------------------*/
 /**                                                           //待续
 	**************************************************************
@@ -42,22 +48,27 @@ void gimbal_pid_init(void)
 {
 		/*pitch axis motor pid parameter*/
 	PID_struct_init(&pid_pit, POSITION_PID, 5000, 1000,
-                  8.0f, 0.02f, 0.5f); 
+                  4.0f, 0.02f, 5.0f); 
   PID_struct_init(&pid_pit_jy901_spd, POSITION_PID, 5000, 1000,
                   2.0f, 0.0f, 0.0f );
-//	pid_pit_jy901_spd.deadband = 10;
+	
   /* yaw axis motor pid parameter */
 //	 PID_struct_init(&pid_yaw, POSITION_PID, 5000, 1000,
 //                  10.0f, 0.02f, 10.0f); 
 //	 PID_struct_init(&pid_yaw_jy901_spd, POSITION_PID, 5000, 1000,
 //                  2.0f, 0.0f, 0.0f );
 	//use jy901
-  PID_struct_init(&pid_yaw_jy901, POSITION_PID, 5000, 1000,
-                  5.0f, 0.02f, 0.5f); //	
-  PID_struct_init(&pid_yaw_jy901_spd, POSITION_PID, 5000, 1000,
-                  2.0f, 0.0f, 0.0f ); 
+//  PID_struct_init(&pid_yaw_jy901, POSITION_PID, 5000, 1000,
+//                  5.0f, 0.1f, 25.0f); //	
+//  PID_struct_init(&pid_yaw_jy901_spd, POSITION_PID, 5000, 1000,
+//                  2.5f, 0.0f, 1.0f ); 
+  
+  PID_struct_init(&pid_yaw_jy901, POSITION_PID, 5000, 100,
+                  3.0f, 0.02f, 5.0f); //	
+  PID_struct_init(&pid_yaw_jy901_spd, POSITION_PID, 5000, 100,
+                  2.0f, 0.0f, 0.5f ); 
 
-//	pid_yaw_jy901_spd.deadband = 10;
+	
 }
 /* 任务主体部分 -------------------------------------------------------------*/
 
@@ -77,11 +88,15 @@ void Gimbal_Contrl_Task(void const * argument)
 	Pitch_Current_Value=0;
 	Yaw_Current_Value=0;
 	gimbal_pid_init();
+	
+	osDelay(200);//延时200ms
+	portTickType xLastWakeTime;
+  xLastWakeTime = xTaskGetTickCount();	
 			
 	for(;;)		
     {
 	
-	
+	   RefreshTaskOutLineTime(GimbalContrlTask_ON);
 
 			// 只用jy901的角度数据
 			switch(0)
@@ -105,8 +120,8 @@ void Gimbal_Contrl_Task(void const * argument)
 					minipc_rx.angle_yaw = 0;
 					minipc_rx.angle_pit = 0;
 
-//					pid_calc(&pid_yaw_jy901,(ptr_jy901_t_yaw.final_angle),yaw_set.expect);
-					pid_calc(&pid_yaw_jy901, yaw_get.total_angle,yaw_set.expect);
+					pid_calc(&pid_yaw_jy901,(ptr_jy901_t_yaw.final_angle),yaw_set.expect);
+//					pid_calc(&pid_yaw_jy901, yaw_get.total_angle,yaw_set.expect);
 					pid_calc(&pid_yaw_jy901_spd,(ptr_jy901_t_angular_velocity.vz), pid_yaw_jy901.pos_out);
 					//pit轴
 					pid_calc(&pid_pit, pit_get.total_angle, pit_set.expect);
@@ -146,7 +161,8 @@ void Gimbal_Contrl_Task(void const * argument)
 				}
 				else Cloud_Platform_Motor(&hcan1,Yaw_Current_Value,Pitch_Current_Value);
 
-			osDelay(5);
+			osDelayUntil(&xLastWakeTime, GIMBAL_PERIOD);
+			
    }
  
 }

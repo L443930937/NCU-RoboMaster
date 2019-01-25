@@ -1,5 +1,6 @@
 /* 包含头文件----------------------------------------------------------------*/
 #include "chassis_task.h"
+#include "SystemState.h"
 /* 内部宏定义----------------------------------------------------------------*/
 
 /* 内部自定义数据类型--------------------------------------------------------*/
@@ -33,7 +34,7 @@ static float Current_set[4] = {0};  //传递给功率限制的缓存
 //测试变量
 int16_t angle[2];
 
-
+#define CHASSIS_PERIOD 5
 
 /* 内部函数原型声明----------------------------------------------------------*/
 void Chassis_pid_init(void)
@@ -76,16 +77,20 @@ void Chassis_pid_init(void)
 void Chassis_Contrl_Task(void const * argument)
 {
 	static float  wheel[4]={0,0,0,0};
-			HAL_GPIO_WritePin(GPIOG,GPIO_PIN_4,GPIO_PIN_SET); //GRE_G
+	
+	osDelay(200);//延时200ms
+	portTickType xLastWakeTime;
+  xLastWakeTime = xTaskGetTickCount();
+	
+
       chassis_disable_flg=0;
 	    Chassis_pid_init();
 	for(;;)
 	{
 	  IMU_Get_Data();
-		HAL_GPIO_TogglePin(GPIOG,GPIO_PIN_4); //GRE_G
-
+    RefreshTaskOutLineTime(ChassisContrlTask_ON);
 //	 	switch(chassis_gimble_Mode_flg)
-		switch(0)
+		switch(chassis_gimble_Mode_flg)
 		{	
 			case 0:	{	//分离	
 			motor_move_setvmmps(wheel,moto_3508_set.dstVmmps_X,moto_3508_set.dstVmmps_Y,moto_3508_set.dstVmmps_W);
@@ -108,13 +113,13 @@ void Chassis_Contrl_Task(void const * argument)
 			{		
 				pid_calc(&pid_3508_spd[i], moto_chassis_get[i].speed_rpm, wheel[i]);
 			}
-			
-      	if(chassis_gimble_Mode_flg==1&&abs(yaw_get.total_angle)>2000)//电机失能保护
-				{
-			        gimbal_disable_flg=1;
-			 		    chassis_disable_flg=1;
-		  			   
-				}
+//			
+//      	if(chassis_gimble_Mode_flg==1&&abs(yaw_get.total_angle)>2000)//电机失能保护
+//				{
+//			        gimbal_disable_flg=1;
+//			 		    chassis_disable_flg=1;
+//		  			   
+//				}
 		
 		/**********功率限制*********/
 
@@ -142,7 +147,7 @@ void Chassis_Contrl_Task(void const * argument)
 //					pid_calc(&pid_3508_current[i], moto_chassis_get[i].real_current, wheel[i]);
 //				}	
 
-//				
+//				`
 //			int16_t  *ptr = angle; //初始化指针
 //			angle[0]	= (wheel[0]);
 //			angle[1]	= (moto_chassis_get[0].real_current);
@@ -198,7 +203,7 @@ void Chassis_Contrl_Task(void const * argument)
 			//			flag_counter = 0;
 				}
 		
-	  osDelay(5);
+			osDelayUntil(&xLastWakeTime, CHASSIS_PERIOD);
   }
 }
 

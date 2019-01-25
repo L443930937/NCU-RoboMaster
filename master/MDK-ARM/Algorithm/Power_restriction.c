@@ -405,6 +405,6 @@ void power_limit(float  Current_get[4])
 				MyTime_memset(&time_for_limit,2);
 			}	
 					
-			printf("\n power:%4f .\n",limit.Power_Calculat);
+//			printf("\n power:%4f .\n",limit.Power_Calculat);
 }
 

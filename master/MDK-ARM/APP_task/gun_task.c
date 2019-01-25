@@ -1,6 +1,7 @@
 /* 包含头文件----------------------------------------------------------------*/
 #include "gun_task.h"
 #include "math.h"
+#include "SystemState.h"
 /* 内部宏定义----------------------------------------------------------------*/
 
 /* 内部自定义数据类型--------------------------------------------------------*/
@@ -8,7 +9,7 @@
 /* 任务相关信息定义----------------------------------------------------------*/
 //extern osMessageQId JSYS_QueueHandle;
 /* 内部常量定义--------------------------------------------------------------*/
-
+#define GUN_PERIOD  10
 /* 外部变量声明--------------------------------------------------------------*/
 Heat_Gun_t  ptr_heat_gun_t;
 extern uint8_t shot_frequency;
@@ -28,7 +29,7 @@ pid_t pid_dial_spd  = {0};	//拨盘电机速度环
 void Gun_Pid_Init()
 {
 		PID_struct_init(&pid_dial_pos, POSITION_PID, 6000, 5000,
-									0.2f,	0.0000f,	0.0f);  
+									0.2f,	0.0000f,	2.0f);  
 		//pid_pos[i].deadband=500;
 		PID_struct_init(&pid_dial_spd, POSITION_PID, 6000, 5000,
 									1.5f,	0.1f,	0.0f	);  
@@ -45,16 +46,17 @@ void Gun_Pid_Init()
 	*	@supplement	枪口热量限制任务
 	*	@retval	
 ****************************************************************************************/
-uint8_t motor_stop_flag=0;
-int32_t set_angle = 0;
-
 void Gun_Task(void const * argument)
 { 
-//  ptr_heat_gun_t.limt_spd=30;
-//	ptr_heat_gun_t.stop_flg=1;
-//	ptr_heat_gun_t.heat_down_flg=1;
-  Gun_Pid_Init();
-  
+
+	osDelay(100);
+	portTickType xLastWakeTime;
+	xLastWakeTime = xTaskGetTickCount();
+
+	Gun_Pid_Init();
+	
+	uint8_t motor_stop_flag=0;
+	int32_t set_angle = 0;
   uint8_t key_flag = 0;
   uint16_t check_count = 0;
   uint8_t check_flag = 0;
@@ -67,6 +69,8 @@ void Gun_Task(void const * argument)
 
 	for(;;)
 	{
+		RefreshTaskOutLineTime(GunTask_ON);
+		
  /*判断发射模式*/
     switch(ptr_heat_gun_t.sht_flg)
     {
@@ -196,9 +200,9 @@ void Gun_Task(void const * argument)
      pid_calc(&pid_dial_spd,moto_dial_get.speed_rpm ,pid_dial_pos.pos_out);
      /*驱动拨弹电机*/
 		 Allocate_Motor(&hcan1,pid_dial_spd.pos_out);
-    
-			osDelay(5);
-  }
+					
+        osDelayUntil(&xLastWakeTime,GUN_PERIOD);
+	}
 }
 
 

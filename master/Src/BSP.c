@@ -2,19 +2,95 @@
 
 volatile unsigned long long FreeRTOSRunTimeTicks;
 
+xQueueHandle UART1_RX_QueHandle;//串口1接收队列
+xQueueHandle UART2_RX_QueHandle;//串口2接收队列
+xQueueHandle UART6_RX_QueHandle;//串口6接收队列
+xQueueHandle UART8_RX_QueHandle;//串口8接收队列
 
 void Power_Init(void)
 {
 #if BoardNew
 
 HAL_GPIO_WritePin(GPIOH, GPIO_PIN_2, GPIO_PIN_SET);   //power1
-HAL_GPIO_WritePin(GPIOH, GPIO_PIN_3, GPIO_PIN_RESET);   //power2
+HAL_GPIO_WritePin(GPIOH, GPIO_PIN_3, GPIO_PIN_SET);   //power2
 HAL_GPIO_WritePin(GPIOH, GPIO_PIN_4, GPIO_PIN_SET);   //power3
 HAL_GPIO_WritePin(GPIOH, GPIO_PIN_5, GPIO_PIN_SET);   //power4
 
 #endif
 	HAL_Delay(50);
 }
+
+/**
+	**************************************************************
+	** Descriptions:	JY61休眠/解休眠
+	** Input:	huart  发送指令的串口，波特率要求为115200
+  **						
+	**					
+	**					
+	** Output: NULL
+	**************************************************************
+**/
+void JY61_SLEEPorUNSLEEP(UART_HandleTypeDef *huart)
+{
+	uint8_t buff[3] = {0xff,0xaa,0x60};
+	//休眠,解休眠
+	HAL_UART_Transmit(huart,buff,3,10);
+}
+
+/**
+	**************************************************************
+	** Descriptions: JY61帧对齐函数
+	** Input: 	
+  **						
+	**					
+	**					
+	** Output: NULL
+	**************************************************************
+**/
+void JY61_Frame(void)
+{
+	static uint8_t JY61_Frame_flag = 0;
+	static	uint8_t JY61_Frame_Num = 0;
+	
+while( UART8_RX_DATA[0] != 0x55 ||  JY61_Frame_flag == 1)
+{
+	
+	if(UART8_RX_DATA[0] != 0x55 && JY61_Frame_flag == 0)
+	{
+				
+				HAL_UART_DMAPause(&huart8);
+				*UART8_RX_DATA = 0;
+				JY61_Frame_flag = 1;
+				
+	}
+	if(JY61_Frame_flag == 1)//休眠一次，必须解休眠
+	{
+			JY61_Frame_Num++;
+			
+					if(JY61_Frame_Num == 25)
+					 {
+						 
+//								JY61_SLEEPorUNSLEEP(&huart8);
+//								JY61_Frame_flag = 0;
+//								JY61_Frame_Num = 0;
+							
+								HAL_UART_Receive_DMA(&huart8,UART8_RX_DATA,SizeofJY901);	//陀螺仪接收
+
+				   } else if(JY61_Frame_Num == 50)
+							 {
+								   HAL_UART_DMAResume(&huart8);
+							 } else if(JY61_Frame_Num > 100  )
+									 {
+										 JY61_Frame_flag = 0;
+							       JY61_Frame_Num = 0;
+									 }
+
+	 }
+}
+	
+}
+
+
 
 void JY901_Init(void)
 {
@@ -64,7 +140,9 @@ void BSP_Init(void)
 	CanFilter_Init(&hcan2);
 	/*定时器*/
   MX_TIM5_Init();
-  MX_TIM12_Init();
+  MX_TIM12_Init();//测速模块定时器
+	MX_TIM6_Init();
+	SystemState_Inite();
   /*ADC*/
 	MX_ADC1_Init();
 	/*串口*/
@@ -84,19 +162,28 @@ void BSP_Init(void)
 	/*使能DMA中断*/
 	HAL_UART_Receive_DMA(&huart1,USART1_RX_DATA,SizeofRemote); //这一步的目的是创建一段接受内存，和CAN的一样
 	HAL_UART_Receive_DMA(&huart8,UART8_RX_DATA,SizeofJY901);
+//  HAL_UART_Receive_DMA(&huart8,HOST_Buffer.buffer,sizeof(HOST_Buffer.buffer));//Sabar
 	HAL_UART_Receive_DMA(&huart2,USART2_RX_DATA,SizeofMinipc);
+
+   /* 队列初始化  */
+//  UART1_RX_QueHandle=xQueueCreate(SizeofRemote,30);
+//	if(NULL==UART1_RX_QueHandle) while(1); 
+//  UART2_RX_QueHandle=xQueueCreate(5,30);
+//  UART6_RX_QueHandle=xQueueCreate(5,30);
+//  UART8_RX_QueHandle=xQueueCreate(SizeofJY901,30);
+//	if(NULL==UART8_RX_QueHandle) while(1);   
 
 /*开启ADC的DMA接收，注意缓存不能小于2，不能设置为_IO型即易变量*/
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)uhADCxConvertedValue, 10); 
 	/*陀螺仪*/
 //	 MPU6500_Init();
 	/*摩擦轮*/
-		GUN_Init();
+	GUN_Init();
 	/*使能can中断*/
   HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0); 
   HAL_CAN_Receive_IT(&hcan2, CAN_FIFO0);
-	/*初始化JY901*/
-//	JY901_Init();
-//	HAL_Delay(4000);
+	
+	JY61_Frame();
+	HAL_Delay(1000);
 
 }
